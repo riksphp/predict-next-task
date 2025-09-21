@@ -137,3 +137,11 @@
 .sendButton:hover {
   background: #ff3742;
 }
+
+.inputLabel {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+  padding: 0.5rem 1rem;
+  line-height: 1.3;
+}

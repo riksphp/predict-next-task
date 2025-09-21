@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { PROMPTS } from '../data-layer/prompts';
+import { extractContext } from '../services/contextService';
 import styles from './ChatPage.module.css';
 
 interface Message {
@@ -37,7 +39,7 @@ const ChatPage = () => {
     }
   }, []);
 
-  const handleSend = (textToSend?: string): void => {
+  const handleSend = async (textToSend?: string): Promise<void> => {
     const messageText = textToSend || message;
     if (messageText.trim()) {
       const userMessage: Message = {
@@ -49,15 +51,14 @@ const ChatPage = () => {
       setMessages((prev) => [...prev, userMessage]);
       if (!textToSend) setMessage('');
 
-      // Simulate assistant response
-      setTimeout(() => {
-        const assistantMessage: Message = {
-          id: Date.now() + 1,
-          text: "I'm here to help! This is a placeholder response.",
-          isUser: false,
-        };
-        setMessages((prev) => [...prev, assistantMessage]);
-      }, 1000);
+      // Extract context using Gemini
+      const contextResponse = await extractContext(messageText.trim());
+      const assistantMessage: Message = {
+        id: Date.now() + 1,
+        text: contextResponse,
+        isUser: false,
+      };
+      setMessages((prev) => [...prev, assistantMessage]);
     }
   };
 
@@ -89,7 +90,7 @@ const ChatPage = () => {
             ref={inputRef}
             type="text"
             className={styles.chatInput}
-            placeholder="Type your message..."
+            placeholder={PROMPTS.CHAT_PLACEHOLDER}
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyUp={(e) => e.key === 'Enter' && handleSend()}
@@ -97,6 +98,9 @@ const ChatPage = () => {
           <button className={styles.sendButton} onClick={() => handleSend()}>
             Send
           </button>
+        </div>
+        <div className={styles.inputLabel}>
+          {PROMPTS.INPUT_LABEL}
         </div>
       </div>
     </div>

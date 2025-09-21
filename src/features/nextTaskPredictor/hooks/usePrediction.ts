@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { predictNextTask } from '../services/predictService';
-import { useUserContextStore } from '../data-store/userContextStore';
+import { getUserContext } from '../data-layer/userContextStorage';
 
 function formatResponse(text: string): { mainTask: string; reasoning: string } {
   const cleaned = text
@@ -18,12 +18,13 @@ function formatResponse(text: string): { mainTask: string; reasoning: string } {
 }
 
 export function usePrediction() {
-  const { context } = useUserContextStore();
   const [loading, setLoading] = useState<boolean>(false);
 
   async function predict(): Promise<{ mainTask: string; reasoning: string }> {
     setLoading(true);
-    const prediction = await predictNextTask(context);
+    const userContext = await getUserContext();
+    const contextString = JSON.stringify(userContext, null, 2);
+    const prediction = await predictNextTask(contextString);
     const formatted = formatResponse(prediction);
     setLoading(false);
     return formatted;
