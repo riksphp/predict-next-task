@@ -1,11 +1,13 @@
-const BASE_TRUTHS: string[] = [
-  'Progress compounds; ship small steps daily.',
-  'Clarity beats complexity; write it down.',
-  'Feedback early; iterate quickly.',
-  'Focus on user value; measure impact.',
-  'Default to action; perfection is a trap.',
-];
+const BASE_TRUTHS = {
+  base_truths: [
+    { principle: 'Compassion', statement: 'I am mother to the world' },
+    { principle: 'Responsibility', statement: 'I am responsible for everything' },
+    { principle: 'Detachment', statement: 'I am not my body, I am not my mind' },
+    { principle: 'Presence', statement: 'This moment is the ultimate reality' },
+    { principle: 'Acceptance', statement: 'Right now what it is, it can be only that way' },
+  ],
+};
 
-export function getBaseTruths(): string[] {
+export function getBaseTruths() {
   return BASE_TRUTHS;
 }

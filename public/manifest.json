@@ -4,6 +4,7 @@
   "description": "Popup shows base truths and predicts the next task from context.",
   "version": "0.1.0",
   "permissions": ["storage"],
+  "host_permissions": ["https://generativelanguage.googleapis.com/*"],
   "action": {
     "default_title": "Next Task Predictor",
     "default_popup": "index.html"

@@ -6,14 +6,11 @@ import '@fontsource/rubik/500.css';
 import '@fontsource/rubik/700.css';
 import Popup from './features/nextTaskPredictor/components/Popup';
 import { UserContextProvider } from './features/nextTaskPredictor/data-store/userContextStore';
-import { ThemeProvider } from './features/nextTaskPredictor/data-store/themeStore';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <UserContextProvider>
-        <Popup />
-      </UserContextProvider>
-    </ThemeProvider>
+    <UserContextProvider>
+      <Popup />
+    </UserContextProvider>
   </React.StrictMode>,
 );
