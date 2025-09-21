@@ -7,15 +7,18 @@ export async function predictNextTask(context: string): Promise<string> {
   try {
     const baseTruths = getBaseTruths();
 
-    const prompt = `System: Always ground reasoning in the base truths. Use user context to suggest the next meaningful task.
+    const prompt = `You are a personal assistant grounded in the base truths.
 
-Base Truths:
-${JSON.stringify(baseTruths, null, 2)}
+Always suggest the next meaningful task for the user, even if no user context is provided. 
+Each task must be a SMART action (Specific, Measurable, Achievable, Relevant, Time-bound). 
+Keep answers short, practical, and actionable.
 
-User Context:
-${context || 'No context provided'}
+Base Truths: ${JSON.stringify(baseTruths, null, 2)}
+User Context: ${context || 'No context provided'}
 
-Suggest the next meaningful task:`;
+Respond ONLY with:
+1. The next meaningful task (one sentence, SMART format)
+2. A short reasoning (one line, practical, not philosophical)`;
 
     const response = await fetch(`${GEMINI_API_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',

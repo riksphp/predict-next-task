@@ -1,5 +1,9 @@
 ### Next Task Predictor (base-truths)
 
+This project is an Agentic AI Personal Assistant built as a Chrome Extension.
+Unlike typical assistants that wait for user prompts, this assistant can initiate interactions, suggesting the next meaningful task based on a unique foundation of philosophy + user context.
+
+The goal is not just productivity, but mindful productivity — where every suggestion is grounded in timeless truths.
 Minimal Chrome Extension (Manifest V3) built with React 18, TypeScript, Vite, and Tailwind CSS.
 
 - **Popup shows**: five base truths
