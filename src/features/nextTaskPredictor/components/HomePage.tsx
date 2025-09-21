@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrediction } from '../hooks/usePrediction';
 import { PROMPTS } from '../data-layer/prompts';
-import { getUserContext, saveUserContext } from '../data-layer/userContextStorage';
 import styles from './HomePage.module.css';
 
 const HomePage = () => {
@@ -18,12 +17,6 @@ const HomePage = () => {
   async function handleSubmit(): Promise<void> {
     if (input.trim()) {
       const message = input.trim();
-      const userContext = await getUserContext();
-      const updatedContext = {
-        ...userContext,
-        quickNotes: [...(userContext.quickNotes || []), message]
-      };
-      await saveUserContext(updatedContext);
       setInput('');
       navigate('/chat', { state: { initialMessage: message } });
     }
@@ -56,9 +49,7 @@ const HomePage = () => {
             ↑
           </button>
         </div>
-        <div className={styles.inputLabel}>
-          {PROMPTS.INPUT_LABEL}
-        </div>
+        <div className={styles.inputLabel}>{PROMPTS.INPUT_LABEL}</div>
       </div>
     </div>
   );

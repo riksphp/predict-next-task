@@ -14,14 +14,14 @@ export async function predictNextTask(context: string): Promise<string> {
   
   const response = await callGeminiApi(prompt);
   
-  // Extract main task from response and save as predictedToDo
+  // Extract main task from response and add to predictedToDo array
   const lines = response.split('\n').filter(line => line.trim());
   const mainTask = lines.find(line => line.match(/^1\./))?.replace(/^1\.\s*/, '') || lines[0] || '';
   
   if (mainTask.trim()) {
     const updatedContext = {
       ...userContext,
-      predictedToDo: mainTask.trim()
+      predictedToDo: [...(userContext.predictedToDo || []), mainTask.trim()]
     };
     await saveUserContext(updatedContext);
   }

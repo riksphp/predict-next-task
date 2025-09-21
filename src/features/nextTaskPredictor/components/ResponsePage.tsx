@@ -22,7 +22,7 @@ const ResponsePage = () => {
       const updatedContext = {
         ...userContext,
         completedToDo: [...(userContext.completedToDo || []), result.mainTask],
-        predictedToDo: undefined // Clear the predicted task
+        predictedToDo: (userContext.predictedToDo || []).filter(task => task !== result.mainTask)
       };
       await saveUserContext(updatedContext);
     }

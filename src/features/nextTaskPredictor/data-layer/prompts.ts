@@ -1,9 +1,22 @@
+import { BASE_TRUTHS } from './baseTruths';
+
+export const APP_HELP_CONTEXT = {
+  description:
+    'This app collects user input such as todos, reminders, mood, and ideas, and predicts the next meaningful task for the user using an AI assistant.',
+  instructions:
+    'Users talk naturally, list tasks, share ideas, and the AI suggests the next SMART action.',
+  taskPredictionContext: `Use the following base truths to predict the next meaningful task: ${JSON.stringify(
+    BASE_TRUTHS,
+  )}. If no user-specific context is present, predict based on base truths alone.`,
+};
+
 export const PROMPTS = {
   INPUT_PLACEHOLDER: 'Type anything... todos, ideas, thoughts',
   INPUT_LABEL:
     "Tell me about your name, mood, todos, recent activity, or any ideas — I'll use this to suggest the best next task for you.",
   CHAT_PLACEHOLDER: 'Type your message...',
   ASSISTANT_PLACEHOLDER: "I'm here to help! This is a placeholder response.",
+
   TASK_PREDICTION: `You are a personal assistant grounded in the base truths.
 
 Always suggest the next meaningful task for the user, even if no user context is provided. 
@@ -14,9 +27,11 @@ Base Truths: {baseTruths}
 User Context: {context}
 
 Respond ONLY with:
-1. The next meaningful task (one sentence, SMART format)
+1. The next meaningful task (one sentence, SMART format, achievable in half an hour)
 2. A short reasoning (one line, practical, not philosophical)`,
   CONTEXT_EXTRACTION: `You are a friendly personal assistant grounded in the base truths.
+
+Your main function - ${JSON.stringify(APP_HELP_CONTEXT)}
 
 Your tasks:
 1. Extract structured user context from the input.

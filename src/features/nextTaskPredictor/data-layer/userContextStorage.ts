@@ -7,7 +7,7 @@ export interface UserContext {
   todos?: string[];
   quickNotes?: string[];
   preferences?: Record<string, any>;
-  predictedToDo?: string;
+  predictedToDo?: string[];
   completedToDo?: string[];
   serverResponse?: string;
 }

@@ -1,4 +1,4 @@
-const BASE_TRUTHS = {
+export const BASE_TRUTHS = {
   base_truths: [
     { principle: 'Compassion', statement: 'I am mother to the world' },
     { principle: 'Responsibility', statement: 'I am responsible for everything' },
