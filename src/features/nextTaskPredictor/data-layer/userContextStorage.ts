@@ -47,12 +47,13 @@ export async function saveUserContext(context: UserContext): Promise<void> {
 }
 
 export function mergeUserContext(existing: UserContext, newContext: UserContext): UserContext {
+  console.log('mergeUserContext', existing, newContext);
   return {
-    name: newContext.name || existing.name,
-    profession: newContext.profession || existing.profession,
-    mood: newContext.mood || existing.mood,
-    todos: [...(existing.todos || []), ...(newContext.todos || [])],
-    quickNotes: [...(existing.quickNotes || []), ...(newContext.quickNotes || [])],
-    preferences: { ...(existing.preferences || {}), ...(newContext.preferences || {}) }
+    name: newContext.name,
+    profession: newContext.profession,
+    mood: newContext.mood,
+    todos: [...(newContext.todos || [])],
+    quickNotes: [...(newContext.quickNotes || [])],
+    preferences: { ...(newContext.preferences || {}) },
   };
 }
