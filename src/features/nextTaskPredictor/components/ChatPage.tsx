@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { PROMPTS } from '../data-layer/prompts';
 import { extractContext } from '../services/contextService';
+import { saveUserInput } from '../data-layer/userInputStorage';
 import styles from './ChatPage.module.css';
 
 interface Message {
@@ -42,6 +43,9 @@ const ChatPage = () => {
   const handleSend = async (textToSend?: string): Promise<void> => {
     const messageText = textToSend || message;
     if (messageText.trim()) {
+      // Save user input
+      await saveUserInput(messageText.trim(), 'chat');
+      
       const userMessage: Message = {
         id: Date.now(),
         text: messageText.trim(),

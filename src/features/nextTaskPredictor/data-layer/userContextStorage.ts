@@ -1,15 +1,17 @@
 const USER_CONTEXT_KEY = 'userContext';
 
-export interface UserContext {
+export interface ContextData {
   name?: string;
   profession?: string;
   mood?: string;
   todos?: string[];
   quickNotes?: string[];
   preferences?: Record<string, any>;
-  predictedToDo?: string[];
-  completedToDo?: string[];
   serverResponse?: string;
+}
+
+export interface UserContext {
+  [timestamp: string]: ContextData;
 }
 
 function hasChromeStorage(): boolean {
@@ -46,14 +48,12 @@ export async function saveUserContext(context: UserContext): Promise<void> {
   }
 }
 
-export function mergeUserContext(existing: UserContext, newContext: UserContext): UserContext {
-  console.log('mergeUserContext', existing, newContext);
-  return {
-    name: newContext.name,
-    profession: newContext.profession,
-    mood: newContext.mood,
-    todos: [...(newContext.todos || [])],
-    quickNotes: [...(newContext.quickNotes || [])],
-    preferences: { ...(newContext.preferences || {}) },
+export async function addNewContext(newContext: ContextData): Promise<void> {
+  const existing = await getUserContext();
+  const timestamp = new Date().toISOString();
+  const updated = {
+    ...existing,
+    [timestamp]: newContext,
   };
+  await saveUserContext(updated);
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getUserContext, saveUserContext } from '../data-layer/userContextStorage';
+import { completeTask } from '../data-layer/taskStorage';
 import styles from './ResponsePage.module.css';
 
 const ResponsePage = () => {
@@ -18,13 +18,7 @@ const ResponsePage = () => {
   async function onTaskCompleted(checked: boolean): Promise<void> {
     setIsCompleted(checked);
     if (checked) {
-      const userContext = await getUserContext();
-      const updatedContext = {
-        ...userContext,
-        completedToDo: [...(userContext.completedToDo || []), result.mainTask],
-        predictedToDo: (userContext.predictedToDo || []).filter(task => task !== result.mainTask)
-      };
-      await saveUserContext(updatedContext);
+      await completeTask(result.mainTask);
     }
   }
 
@@ -48,6 +42,7 @@ const ResponsePage = () => {
         </div>
         <div className={styles.responseButtons}>
           <button className={`${styles.roundButton} ${styles.interactButton}`} onClick={() => navigate('/chat')}>Interact with Me</button>
+          <button className={`${styles.roundButton} ${styles.predictButton}`} onClick={() => navigate('/dashboard')}>Dashboard</button>
           <button className={`${styles.roundButton} ${styles.predictButton}`} onClick={() => navigate('/')}>
             Home
           </button>

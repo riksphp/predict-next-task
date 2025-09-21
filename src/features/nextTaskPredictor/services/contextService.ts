@@ -1,19 +1,27 @@
 import { PROMPTS } from '../data-layer/prompts';
 import { callGeminiApi } from '../data-layer/geminiApi';
-import {
-  getUserContext,
-  saveUserContext,
-  mergeUserContext,
-  UserContext,
-} from '../data-layer/userContextStorage';
+import { addNewContext, ContextData } from '../data-layer/userContextStorage';
 import { getBaseTruths } from '../data-layer/baseTruths';
+import { getUserAnalysis } from './analysisService';
 
 export async function extractContext(input: string): Promise<string> {
   const baseTruths = getBaseTruths();
+
+  // Get or create user analysis for better context
+  let userAnalysis = await getUserAnalysis();
+  // if (!userAnalysis) {
+  // userAnalysis = await analyzeUserInputs();
+  // }
+
+  const enrichedContext = {
+    input,
+    userAnalysis,
+  };
+
   const prompt = PROMPTS.CONTEXT_EXTRACTION.replace(
     '{baseTruths}',
     JSON.stringify(baseTruths, null, 2),
-  ).replace('{userInput}', input);
+  ).replace('{userInput}', JSON.stringify(enrichedContext, null, 2));
   const response = await callGeminiApi(prompt);
 
   try {
@@ -23,7 +31,7 @@ export async function extractContext(input: string): Promise<string> {
     jsonString = jsonString.replace(/```json|```/g, '').trim();
 
     // Parse JSON response
-    const newContext: UserContext = JSON.parse(jsonString);
+    const newContext: ContextData = JSON.parse(jsonString);
 
     // Extract serverResponse for UI
     const serverResponse = newContext.serverResponse || 'Thanks for sharing!';
@@ -31,14 +39,8 @@ export async function extractContext(input: string): Promise<string> {
     // Remove serverResponse from context before saving
     const { serverResponse: _, ...contextToSave } = newContext;
 
-    // Get existing context
-    const existingContext = await getUserContext();
-
-    // Merge contexts (without serverResponse)
-    const mergedContext = mergeUserContext(existingContext, contextToSave);
-
-    // Save merged context
-    await saveUserContext(mergedContext);
+    // Add new context with timestamp
+    await addNewContext(contextToSave);
 
     return serverResponse;
   } catch (error) {

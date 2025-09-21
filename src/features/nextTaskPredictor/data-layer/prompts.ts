@@ -23,11 +23,13 @@ Always suggest the next meaningful task for the user, even if no user context is
 Each task must be a SMART action (Specific, Measurable, Achievable, Relevant, Time-bound). 
 Keep answers short, practical, and actionable.
 
+IMPORTANT: Do NOT suggest tasks that are already in the completedToDo list. Avoid repetition.
+
 Base Truths: {baseTruths}
 User Context: {context}
 
 Respond ONLY with:
-1. The next meaningful task (one sentence, SMART format, achievable in half an hour)
+1. The next meaningful task (one sentence, SMART format, can pe picked right now and be achievable in next half an hour)
 2. A short reasoning (one line, practical, not philosophical)`,
   CONTEXT_EXTRACTION: `You are a friendly personal assistant grounded in the base truths.
 
@@ -52,6 +54,12 @@ Rules:
 - Keep the serverResponse friendly, actionable, and always inviting user input.
 - Respond ONLY in valid JSON with the fields above.
 - Do not add extra explanation or commentary outside JSON.
+- patterns: array of behavioral patterns observed
+- interests: array of topics/areas user is interested in
+- workStyle: string describing how user approaches tasks
+- priorities: array of what seems most important to user
+- suggestions: array of productivity suggestions based on patterns
+- If completedTodo is present then remove that task from todo in json response.
 
 Use this base truth to guide reasoning:
 
@@ -73,4 +81,16 @@ JSON response:
 
 Now process the user input:
 "{userInput}"`,
+  USER_INPUT_ANALYSIS: `You are an AI assistant analyzing user input patterns to create insights.
+
+Analyze all user inputs and return JSON with:
+- patterns: array of behavioral patterns observed
+- interests: array of topics/areas user is interested in
+- workStyle: string describing how user approaches tasks
+- priorities: array of what seems most important to user
+- suggestions: array of productivity suggestions based on patterns
+
+User Inputs: {userInputs}
+
+Respond ONLY with valid JSON.`,
 };
