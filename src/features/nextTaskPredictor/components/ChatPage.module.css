@@ -1,0 +1,121 @@
+.container {
+  width: 420px;
+  height: 500px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rubik', sans-serif;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.chatContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.chatHeader {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.chatTitle {
+  color: white;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+.chatHistory {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.messageContainer {
+  display: flex;
+  width: 100%;
+}
+
+.userMessage {
+  justify-content: flex-end;
+}
+
+.assistantMessage {
+  justify-content: flex-start;
+}
+
+.messageBubble {
+  max-width: 80%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  word-wrap: break-word;
+}
+
+.userMessage .messageBubble {
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+}
+
+.assistantMessage .messageBubble {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chatInputContainer {
+  display: flex;
+  padding: 15px;
+  gap: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.chatInput {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  font-size: 14px;
+  outline: none;
+}
+
+.chatInput::placeholder {
+  color: #666;
+}
+
+.sendButton {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background: #ff4757;
+  color: white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.sendButton:hover {
+  background: #ff3742;
+}

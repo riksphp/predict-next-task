@@ -1,0 +1,147 @@
+.container {
+  width: 420px;
+  height: 500px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Rubik', sans-serif;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.responseContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: slideIn 0.5s ease-out;
+}
+
+.responseText {
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+  color: white;
+  max-height: 100%;
+  overflow-y: auto;
+  word-wrap: break-word;
+  padding-right: 10px;
+}
+
+.responseText::-webkit-scrollbar {
+  width: 8px;
+}
+
+.responseText::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.responseText::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+}
+
+.responseText::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.mainTask {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 10px 0 5px 0;
+  color: white;
+}
+
+.reasoning {
+  font-size: 14px;
+  font-weight: 400;
+  margin: 5px 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-style: italic;
+}
+
+.taskCompletion {
+  margin: 20px 0;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  gap: 12px;
+  user-select: none;
+}
+
+.checkboxContainer input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #ff4757;
+  transform: scale(1.2);
+}
+
+.responseButtons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+  align-items: center;
+}
+
+.roundButton {
+  width: 180px;
+  height: 55px;
+  border-radius: 28px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.interactButton {
+  background: linear-gradient(45deg, #00d2d3, #01a3a4);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.interactButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.predictButton {
+  background: linear-gradient(45deg, #ff4757, #ff3742);
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.predictButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

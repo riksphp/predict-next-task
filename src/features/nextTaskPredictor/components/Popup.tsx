@@ -1,6 +1,7 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import HomePage from './HomePage';
 import ResponsePage from './ResponsePage';
+import ChatPage from './ChatPage';
 
 const Popup = () => {
   return (
@@ -8,6 +9,7 @@ const Popup = () => {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/response" element={<ResponsePage />} />
+        <Route path="/chat" element={<ChatPage />} />
       </Routes>
     </Router>
   );

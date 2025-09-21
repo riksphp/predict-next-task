@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { usePrediction } from '../hooks/usePrediction';
-import '../../../popup.css';
+import styles from './HomePage.module.css';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -12,14 +12,14 @@ const HomePage = () => {
   }
 
   return (
-    <div className="popup-container">
-      <div className="star">✨</div>
-      <div className="greeting">Hi, I am your personal assistant</div>
-      <div className="buttons-container">
-        <button className="round-button predict-button" onClick={onPredict} disabled={loading}>
+    <div className={styles.container}>
+      <div className={styles.star}>✨</div>
+      <div className={styles.greeting}>Hi, I am your personal assistant</div>
+      <div className={styles.buttonsContainer}>
+        <button className={`${styles.roundButton} ${styles.predictButton}`} onClick={onPredict} disabled={loading}>
           {loading ? 'Predicting...' : 'Predict Next Task'}
         </button>
-        <button className="round-button interact-button">Interact with Me</button>
+        <button className={`${styles.roundButton} ${styles.interactButton}`} onClick={() => navigate('/chat')}>Interact with Me</button>
       </div>
     </div>
   );
