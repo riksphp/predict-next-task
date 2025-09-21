@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Next Task Predictor",
+  "description": "Popup shows base truths and predicts the next task from context.",
+  "version": "0.1.0",
+  "permissions": ["storage"],
+  "action": {
+    "default_title": "Next Task Predictor",
+    "default_popup": "index.html"
+  },
+  "icons": {
+    "128": "icon128.png"
+  }
+}
