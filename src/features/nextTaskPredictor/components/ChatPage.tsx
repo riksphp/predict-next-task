@@ -3,6 +3,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { PROMPTS } from '../data-layer/prompts';
 import { extractContext } from '../services/contextService';
 import { saveUserInput } from '../data-layer/userInputStorage';
+import {
+  getOrCreateDefaultThread,
+  getMessages,
+  addMessage,
+} from '../data-layer/conversationStorage';
 import styles from './ChatPage.module.css';
 
 interface Message {
@@ -16,16 +21,29 @@ const ChatPage = () => {
   const location = useLocation();
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
+  const [threadId, setThreadId] = useState<string | null>(null);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevInitialMessageRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const initialMessage = location.state?.initialMessage;
-    if (initialMessage && prevInitialMessageRef.current !== initialMessage) {
-      handleSend(initialMessage);
-      prevInitialMessageRef.current = initialMessage;
-    }
+    (async () => {
+      const thread = await getOrCreateDefaultThread();
+      setThreadId(thread.id);
+      const persisted = await getMessages(thread.id);
+      setMessages(
+        persisted.map((m) => ({
+          id: Date.parse(m.timestamp),
+          text: m.text,
+          isUser: m.role === 'user',
+        })),
+      );
+      const initialMessage = location.state?.initialMessage;
+      if (initialMessage && prevInitialMessageRef.current !== initialMessage) {
+        await handleSend(initialMessage);
+        prevInitialMessageRef.current = initialMessage;
+      }
+    })();
   }, [location.state]);
 
   useEffect(() => {
@@ -45,7 +63,10 @@ const ChatPage = () => {
     if (messageText.trim()) {
       // Save user input
       await saveUserInput(messageText.trim(), 'chat');
-      
+      if (threadId) {
+        await addMessage(threadId, 'user', messageText.trim());
+      }
+
       const userMessage: Message = {
         id: Date.now(),
         text: messageText.trim(),
@@ -56,10 +77,10 @@ const ChatPage = () => {
       if (!textToSend) setMessage('');
 
       // Extract context using Gemini
-      const contextResponse = await extractContext(messageText.trim());
+      const result = await extractContext(messageText.trim(), threadId || undefined);
       const assistantMessage: Message = {
         id: Date.now() + 1,
-        text: contextResponse,
+        text: result.serverResponse,
         isUser: false,
       };
       setMessages((prev) => [...prev, assistantMessage]);
@@ -103,9 +124,7 @@ const ChatPage = () => {
             Send
           </button>
         </div>
-        <div className={styles.inputLabel}>
-          {PROMPTS.INPUT_LABEL}
-        </div>
+        <div className={styles.inputLabel}>{PROMPTS.INPUT_LABEL}</div>
       </div>
     </div>
   );

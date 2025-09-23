@@ -7,6 +7,11 @@ export interface ContextData {
   todos?: string[];
   quickNotes?: string[];
   preferences?: Record<string, any>;
+  interests?: string[];
+  priorities?: string[];
+  workStyle?: string;
+  character?: string;
+  goals?: string[];
   serverResponse?: string;
 }
 

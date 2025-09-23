@@ -2,28 +2,38 @@ import { getBaseTruths } from '../data-layer/baseTruths';
 import { PROMPTS } from '../data-layer/prompts';
 import { callGeminiApi } from '../data-layer/geminiApi';
 import { getUserContext } from '../data-layer/userContextStorage';
-import { analyzeUserInputs, getUserAnalysis } from './analysisService';
-import { addPredictedTask } from '../data-layer/taskStorage';
+// import { analyzeUserInputs, getUserAnalysis } from './analysisService';
+import { addPredictedTask, getPredictedTasks, getCompletedTasks } from '../data-layer/taskStorage';
+import { getUserProfile } from '../data-layer/userProfileStorage';
+import { getOrCreateDefaultThread, getMessages } from '../data-layer/conversationStorage';
 
 export async function predictNextTask(context: string): Promise<string> {
   const baseTruths = getBaseTruths();
   const userContext = await getUserContext();
+  const predictedTasks = await getPredictedTasks();
+  const completedTasks = await getCompletedTasks();
+  const profile = await getUserProfile();
+  const thread = await getOrCreateDefaultThread();
+  const recentMessages = (await getMessages(thread.id))
+    .slice(-8)
+    .map((m) => ({ role: m.role, text: m.text }));
 
   // Get or create user analysis
-  let userAnalysis = await getUserAnalysis();
+  //   let userAnalysis = await getUserAnalysis();
   //   if (!userAnalysis) {
-  userAnalysis = await analyzeUserInputs();
+  //   userAnalysis = await analyzeUserInputs();
   //   }
 
   const enrichedContext = {
     userContext,
-    userAnalysis,
+    // userAnalysis,
+    predictedTasks,
+    completedTasks,
+    profile,
+    recentMessages,
   };
 
-  const prompt = PROMPTS.TASK_PREDICTION.replace(
-    '{baseTruths}',
-    JSON.stringify(baseTruths, null, 2),
-  ).replace('{context}', JSON.stringify(enrichedContext, null, 2));
+  const prompt = PROMPTS.TEMPLATES.TASK_PREDICTION({ baseTruths, context: enrichedContext });
 
   const response = await callGeminiApi(prompt);
 

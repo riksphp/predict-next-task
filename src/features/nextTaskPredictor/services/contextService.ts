@@ -1,10 +1,22 @@
 import { PROMPTS } from '../data-layer/prompts';
 import { callGeminiApi } from '../data-layer/geminiApi';
-import { addNewContext, ContextData } from '../data-layer/userContextStorage';
+import { addNewContext, ContextData, getUserContext } from '../data-layer/userContextStorage';
 import { getBaseTruths } from '../data-layer/baseTruths';
 import { getUserAnalysis } from './analysisService';
+import { ConversationMessage, addMessage, getMessages } from '../data-layer/conversationStorage';
+import { getUserProfile, updateUserProfile, UserProfile } from '../data-layer/userProfileStorage';
 
-export async function extractContext(input: string): Promise<string> {
+export interface ExtractedContextResult {
+  serverResponse: string;
+  profile: UserProfile;
+  lastMessages: ConversationMessage[];
+  userContext: Record<string, ContextData>;
+}
+
+export async function extractContext(
+  input: string,
+  threadId?: string,
+): Promise<ExtractedContextResult> {
   const baseTruths = getBaseTruths();
 
   // Get or create user analysis for better context
@@ -13,38 +25,67 @@ export async function extractContext(input: string): Promise<string> {
   // userAnalysis = await analyzeUserInputs();
   // }
 
+  const profile = await getUserProfile();
+  const recentMessages = threadId ? await getMessages(threadId) : [];
+
   const enrichedContext = {
     input,
     userAnalysis,
+    profile,
+    recentMessages: recentMessages.slice(-8).map((m) => ({ role: m.role, text: m.text })),
   };
 
-  const prompt = PROMPTS.CONTEXT_EXTRACTION.replace(
-    '{baseTruths}',
-    JSON.stringify(baseTruths, null, 2),
-  ).replace('{userInput}', JSON.stringify(enrichedContext, null, 2));
+  const prompt = PROMPTS.TEMPLATES.CONTEXT_EXTRACTION({
+    baseTruths,
+    userInput: enrichedContext,
+  });
+
   const response = await callGeminiApi(prompt);
 
+  let serverResponse = 'Thanks for sharing!';
+  let parsed: ContextData | null = null;
   try {
     let jsonString = response.trim();
-
-    // Remove any wrapping ```json ... ``` if present
     jsonString = jsonString.replace(/```json|```/g, '').trim();
-
-    // Parse JSON response
-    const newContext: ContextData = JSON.parse(jsonString);
-
-    // Extract serverResponse for UI
-    const serverResponse = newContext.serverResponse || 'Thanks for sharing!';
-
-    // Remove serverResponse from context before saving
-    const { serverResponse: _, ...contextToSave } = newContext;
-
-    // Add new context with timestamp
-    await addNewContext(contextToSave);
-
-    return serverResponse;
+    parsed = JSON.parse(jsonString) as ContextData;
   } catch (error) {
     console.error('Failed to parse context:', error);
-    return response; // Return raw response if parsing fails
+    parsed = { serverResponse: response } as ContextData;
   }
+
+  const newContext: ContextData = parsed || {};
+  serverResponse = newContext.serverResponse || serverResponse;
+  const { serverResponse: _omit, ...contextToSave } = newContext;
+
+  // Persist user context snapshot
+  await addNewContext(contextToSave);
+
+  // Persist profile subset
+  const profilePatch: UserProfile = {
+    name: newContext.name,
+    profession: newContext.profession,
+    mood: newContext.mood,
+    goals: newContext.goals,
+    preferences: newContext.preferences,
+    interests: newContext.interests,
+    priorities: newContext.priorities,
+    workStyle: newContext.workStyle,
+    character: newContext.character,
+  };
+  const updatedProfile = await updateUserProfile(profilePatch);
+
+  // Persist assistant message into conversation
+  if (threadId && serverResponse) {
+    await addMessage(threadId, 'assistant', serverResponse);
+  }
+
+  const userContext = await getUserContext();
+  const lastMessages = threadId ? await getMessages(threadId) : [];
+
+  return {
+    serverResponse,
+    profile: updatedProfile,
+    lastMessages,
+    userContext,
+  };
 }
