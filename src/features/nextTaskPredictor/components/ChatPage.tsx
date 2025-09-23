@@ -40,8 +40,8 @@ const ChatPage = () => {
       );
       const initialMessage = location.state?.initialMessage;
       if (initialMessage && prevInitialMessageRef.current !== initialMessage) {
-        await handleSend(initialMessage);
         prevInitialMessageRef.current = initialMessage;
+        await handleSend(initialMessage);
       }
     })();
   }, [location.state]);

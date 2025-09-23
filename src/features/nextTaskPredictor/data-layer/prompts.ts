@@ -1,4 +1,6 @@
 import { BASE_TRUTHS } from './baseTruths';
+import { TASK_CATEGORY_LIST } from '../constants/taskCategories';
+import { INTERACTIVE_TASK_TEMPLATES } from '../constants/interactiveTasks';
 
 export const APP_HELP_CONTEXT = {
   description:
@@ -29,11 +31,20 @@ export const PROMPTS = {
         baseTruths,
       )}\nRecentContext: ${JSON.stringify(userInput)}\n`,
     TASK_PREDICTION: ({ baseTruths, context }: { baseTruths: unknown; context: unknown }) =>
-      `You are a personal assistant grounded in base truths.\n\nGoal: Suggest the next meaningful task for the user (SMART, <=30 mins, IST where relevant).\n\nRules:\n- Do NOT repeat tasks from completedTasks or predictedTasks.\n- Prefer something new and practical.\n- Every 3rd suggestion may come from base truths if user context is thin.\n\nBaseTruths: ${JSON.stringify(
+      `You are a personal assistant grounded in base truths.\n\nGoal: Propose ONE INTERACTIVE SMART task achievable within 30 minutes that requires user to engage with AI.\n\nHard constraints:\n- Must be NEW: do not repeat items in completedTasks or predictedTasks.\n- Must be DIFFERENT CATEGORY: avoid repeating task types/topics from recentCategories.\n- Must be INTERACTIVE: requires conversation, challenge, quiz, or reflection with AI.\n- Must be SPECIFIC and action-oriented (start with a verb the user can do now).\n- Must include scoring system (user gets points based on performance).\n- Timebox must be <= 30 minutes.\n\nINTERACTIVE TASK TYPES:\n- conversation: Back-and-forth dialogue with AI guidance\n- challenge: User performs task and AI evaluates\n- quiz: AI asks questions and scores responses\n- reflection: User reflects with AI prompting deeper insights\n\nExample Interactive Tasks:\n${INTERACTIVE_TASK_TEMPLATES.slice(
+        0,
+        3,
+      )
+        .map((t) => `- ${t.taskFormat} (${t.interactionType}, max ${t.maxPoints} points)`)
+        .join(
+          '\n',
+        )}\n\nVARIETY RULES:\n- If user context is minimal, suggest tasks related to the 5 base truths (Compassion, Responsibility, Detachment, Presence, Acceptance).\n- Rotate between categories: ${TASK_CATEGORY_LIST.join(
+        ', ',
+      )}.\n- Prefer fresh interaction types to maintain engagement.\n\nReturn ONLY valid JSON with fields:\n{\n  "task": string,           // Interactive task description starting with verb\n  "why": string,            // Why this task benefits the user\n  "category": string,       // one of the ${
+        TASK_CATEGORY_LIST.length
+      } categories above\n  "interactionType": string, // "conversation", "challenge", "quiz", or "reflection"\n  "durationMinutes": number,\n  "deadlineIST": string,    // 'HH:mm IST today'\n  "maxPoints": number,      // Points user can earn (5-15)\n  "scoringCriteria": string[] // 2-4 criteria for scoring\n}\n\nBaseTruths: ${JSON.stringify(
         baseTruths,
-      )}\nContext: ${JSON.stringify(
-        context,
-      )}\n\nRespond with:\n1. Next task (single sentence).\n2. Short reasoning (single line).`,
+      )}\nContext: ${JSON.stringify(context)}`,
     USER_INPUT_ANALYSIS: ({ userInputs }: { userInputs: string }) =>
       `You are analyzing user input history for patterns.\n\nReturn ONLY valid JSON with keys: patterns, interests, workStyle, priorities, suggestions.\n\nUser Inputs:\n${userInputs}`,
   },
