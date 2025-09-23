@@ -4,11 +4,13 @@ const SCORE_HISTORY_KEY = 'scoreHistory';
 export interface ScoreEntry {
   id: string;
   task: string;
+  category: string;
+  interactionType: string;
   score: number;
   maxScore: number;
+  percentage: number;
   feedback: string;
   timestamp: string;
-  category: string;
 }
 
 export interface UserScore {
@@ -130,4 +132,84 @@ function getDefaultScore(): UserScore {
 
 export function calculateScoreFromPercentage(percentage: number, maxPoints = 10): number {
   return Math.round((percentage / 100) * maxPoints);
+}
+
+export async function awardPointsForTaskCompletion(
+  task: string,
+  category?: string,
+): Promise<UserScore> {
+  const currentScore = await getUserScore();
+  const completionPoints = 5; // Base points for completing any task
+  const categoryBonus = getCategoryBonus(category);
+  const totalPoints = completionPoints + categoryBonus;
+
+  // Create score entry for task completion
+  const scoreEntry: ScoreEntry = {
+    id: `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    task: task,
+    category: category || 'general',
+    interactionType: 'task_completion',
+    score: totalPoints,
+    maxScore: totalPoints,
+    percentage: 100,
+    feedback: `Task completed successfully! +${totalPoints} points`,
+    timestamp: new Date().toISOString(),
+  };
+
+  // Update user score
+  const newTotalPoints = currentScore.totalPoints + totalPoints;
+  const newCompletedTasks = currentScore.completedTasks + 1;
+  const newLevel = calculateLevel(newTotalPoints);
+
+  // Calculate new average score including task completion scores
+  const scoreHistory = await getScoreHistory();
+  const allScores = [...scoreHistory, scoreEntry];
+  const newAverageScore =
+    allScores.length > 0
+      ? Math.round(allScores.reduce((sum, entry) => sum + entry.percentage, 0) / allScores.length)
+      : 0;
+
+  const updatedScore: UserScore = {
+    totalPoints: newTotalPoints,
+    level: newLevel,
+    completedTasks: newCompletedTasks,
+    averageScore: newAverageScore,
+    lastUpdated: new Date().toISOString(),
+  };
+
+  // Save both score and history
+  await saveUserScore(updatedScore);
+  await addScoreEntry(scoreEntry);
+
+  return updatedScore;
+}
+
+function getCategoryBonus(category?: string): number {
+  if (!category) return 0;
+
+  // Award bonus points based on task category difficulty/importance
+  const categoryBonuses: Record<string, number> = {
+    'work-productivity': 3,
+    'learning-growth': 4,
+    'health-wellness': 2,
+    'mindfulness-presence': 3,
+    communication: 2,
+    'planning-goals': 2,
+    'creativity-expression': 2,
+    'relationships-compassion': 2,
+    'organization-responsibility': 2,
+    'reflection-acceptance': 3,
+    'physical-activity': 2,
+    'maintenance-care': 1,
+  };
+
+  return categoryBonuses[category] || 1;
+}
+
+function calculateLevel(totalPoints: number): number {
+  // Level calculation: every 100 points = 1 level
+  // Level 1: 0-99 points
+  // Level 2: 100-199 points
+  // Level 3: 200-299 points, etc.
+  return Math.floor(totalPoints / 100) + 1;
 }

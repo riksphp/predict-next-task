@@ -1,6 +1,4 @@
 import { BASE_TRUTHS } from './baseTruths';
-import { TASK_CATEGORY_LIST } from '../constants/taskCategories';
-import { INTERACTIVE_TASK_TEMPLATES } from '../constants/interactiveTasks';
 
 export const APP_HELP_CONTEXT = {
   description:
@@ -30,22 +28,45 @@ export const PROMPTS = {
       `You are a concise, friendly personal assistant grounded in base truths.\n\n- Extract structured user profile and state from the latest message.\n- Reply with serverResponse that continues the conversation and asks a focused question.\n- Output ONLY valid JSON. No markdown.\n\nRequired JSON fields:\n- name, profession, mood (strings or null)\n- todos, quickNotes, interests, priorities, goals (arrays, default [])\n- preferences (object, default {})\n- workStyle, character (strings or null)\n- serverResponse (short, 1-2 sentences, ask a question)\n\nBaseTruths: ${JSON.stringify(
         baseTruths,
       )}\nRecentContext: ${JSON.stringify(userInput)}\n`,
-    TASK_PREDICTION: ({ baseTruths, context }: { baseTruths: unknown; context: unknown }) =>
-      `You are a personal assistant grounded in base truths.\n\nGoal: Propose ONE INTERACTIVE SMART task achievable within 30 minutes that requires user to engage with AI.\n\nHard constraints:\n- Must be NEW: do not repeat items in completedTasks or predictedTasks.\n- Must be DIFFERENT CATEGORY: avoid repeating task types/topics from recentCategories.\n- Must be INTERACTIVE: requires conversation, challenge, quiz, or reflection with AI.\n- Must be SPECIFIC and action-oriented (start with a verb the user can do now).\n- Must include scoring system (user gets points based on performance).\n- Timebox must be <= 30 minutes.\n\nINTERACTIVE TASK TYPES:\n- conversation: Back-and-forth dialogue with AI guidance\n- challenge: User performs task and AI evaluates\n- quiz: AI asks questions and scores responses\n- reflection: User reflects with AI prompting deeper insights\n\nExample Interactive Tasks:\n${INTERACTIVE_TASK_TEMPLATES.slice(
-        0,
-        3,
-      )
-        .map((t) => `- ${t.taskFormat} (${t.interactionType}, max ${t.maxPoints} points)`)
-        .join(
-          '\n',
-        )}\n\nVARIETY RULES:\n- If user context is minimal, suggest tasks related to the 5 base truths (Compassion, Responsibility, Detachment, Presence, Acceptance).\n- Rotate between categories: ${TASK_CATEGORY_LIST.join(
-        ', ',
-      )}.\n- Prefer fresh interaction types to maintain engagement.\n\nReturn ONLY valid JSON with fields:\n{\n  "task": string,           // Interactive task description starting with verb\n  "why": string,            // Why this task benefits the user\n  "category": string,       // one of the ${
-        TASK_CATEGORY_LIST.length
-      } categories above\n  "interactionType": string, // "conversation", "challenge", "quiz", or "reflection"\n  "durationMinutes": number,\n  "deadlineIST": string,    // 'HH:mm IST today'\n  "maxPoints": number,      // Points user can earn (5-15)\n  "scoringCriteria": string[] // 2-4 criteria for scoring\n}\n\nBaseTruths: ${JSON.stringify(
-        baseTruths,
-      )}\nContext: ${JSON.stringify(context)}`,
+    TASK_PREDICTION: ({ context }: { context: unknown }) => {
+      const ctx = context as any;
+      const hasManySimilarTasks = ctx.shouldAvoidSimilarTasks;
+      const hasUncompletedTasks = ctx.pendingTasksCount > 0 && ctx.completedTasksCount === 0;
+
+      return `You are a personal assistant suggesting interactive tasks.\n\nGoal: Propose ONE CONCISE interactive task (30 mins max) that engages the user with AI.\n\nCRITICAL REPETITION PREVENTION:\n${
+        hasUncompletedTasks
+          ? '⚠️ USER HAS UNCOMPLETED TASKS - MUST SUGGEST COMPLETELY DIFFERENT CATEGORY/TOPIC!'
+          : ''
+      }\n${
+        hasManySimilarTasks ? '⚠️ TOO MANY SIMILAR PENDING TASKS - FORCE VARIETY!' : ''
+      }\n- NEVER suggest anything similar to items in allPreviousTasks\n- NEVER use same keywords, topics, or themes from predictedTasks\n- If user has ${
+        ctx.pendingTasksCount
+      } pending tasks, suggest COMPLETELY different topic\n- Analyze completed vs predicted ratio - if imbalanced, change approach entirely\n\nPRIORITY ORDER (choose highest available priority):\n1. USER INPUT PRIORITY: If user has specific todos, goals, or recent messages, create tasks directly related to those\n2. PROFESSIONAL GROWTH: Tasks related to career, skills, learning, work productivity, communication\n3. PERSONAL GROWTH: Tasks for health, creativity, relationships, organization, planning\n4. FOUNDATIONAL: Tasks for mindfulness, reflection, acceptance, responsibility, compassion\n\nVARIETY ENFORCEMENT:\n- If pendingTasksCount > 0 and completedTasksCount = 0: FORCE different category entirely\n- If shouldForceNewCategory = true: Pick category NOT in recentCategories\n- If shouldAvoidSimilarTasks = true: Avoid all topics/keywords from predictedTasks\n- Rotate between: work/learning → health/physical → creative/social → mindfulness\n\nConstraints:\n- Must be COMPLETELY NEW: different from ALL items in allPreviousTasks\n- Must be DIFFERENT CATEGORY: avoid ALL recent categories if flagged\n- Must be INTERACTIVE: conversation, challenge, quiz, or reflection\n- Start with action verb, be specific and brief\n- Include scoring (5-15 points)\n- If user ignoring tasks, change topic completely\n\nReturn ONLY valid JSON:\n{\n  "task": string,           // ONE concise sentence starting with verb - TOTALLY different from previous\n  "why": string,            // 1-2 sentence benefit explanation\n  "category": string,       // MUST be different if shouldForceNewCategory=true\n  "interactionType": string,\n  "durationMinutes": number,\n  "deadlineIST": string,    // 'HH:mm IST today'\n  "maxPoints": number,\n  "scoringCriteria": string[]\n}\n\nContext: ${JSON.stringify(
+        context,
+      )}`;
+    },
     USER_INPUT_ANALYSIS: ({ userInputs }: { userInputs: string }) =>
       `You are analyzing user input history for patterns.\n\nReturn ONLY valid JSON with keys: patterns, interests, workStyle, priorities, suggestions.\n\nUser Inputs:\n${userInputs}`,
+    NOTE_REQUEST_DETECTION: ({ userMessage }: { userMessage: string }) =>
+      `Analyze this user message to determine if they want a technical note generated.
+
+User Message: "${userMessage}"
+
+Look for phrases like:
+- "generate note about..."
+- "create note on..."
+- "make note about..."
+- "note on..." 
+- "explain..." (for technical topics)
+- "how to..." (for technical processes)
+- "guide on..."
+- "tell me about..." (for technical concepts)
+
+Return ONLY valid JSON:
+{
+  "wantsNote": boolean,
+  "topic": "specific topic they want a note about (or null if not requesting)",
+  "technical": boolean
+}`,
   },
 };

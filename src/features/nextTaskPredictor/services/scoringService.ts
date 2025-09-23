@@ -1,6 +1,5 @@
-import { PROMPTS } from '../data-layer/prompts';
 import { callGeminiApi } from '../data-layer/geminiApi';
-import { addScoreEntry, type ScoreEntry } from '../data-layer/scoreStorage';
+import { addScoreEntry } from '../data-layer/scoreStorage';
 
 export interface TaskScoring {
   task: string;
@@ -77,10 +76,12 @@ Be encouraging but honest. Recognize effort and provide constructive guidance.`;
     // Store the score
     await addScoreEntry({
       task: taskScoring.task,
+      category,
+      interactionType: taskScoring.interactionType,
       score: result.score,
       maxScore: result.maxScore,
+      percentage: result.percentage,
       feedback: result.feedback,
-      category,
     });
 
     return result;
@@ -107,10 +108,12 @@ Be encouraging but honest. Recognize effort and provide constructive guidance.`;
 
     await addScoreEntry({
       task: taskScoring.task,
+      category,
+      interactionType: taskScoring.interactionType,
       score: fallbackResult.score,
       maxScore: fallbackResult.maxScore,
+      percentage: fallbackResult.percentage,
       feedback: fallbackResult.feedback,
-      category,
     });
 
     return fallbackResult;

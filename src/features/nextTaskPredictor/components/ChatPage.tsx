@@ -16,12 +16,19 @@ interface Message {
   isUser: boolean;
 }
 
+interface TaskContext {
+  task: string;
+  reasoning: string;
+  userInput: string;
+}
+
 const ChatPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [message, setMessage] = useState<string>('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [threadId, setThreadId] = useState<string | null>(null);
+  const [taskContext, setTaskContext] = useState<TaskContext | null>(null);
   const chatHistoryRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const prevInitialMessageRef = useRef<string | null>(null);
@@ -38,6 +45,12 @@ const ChatPage = () => {
           isUser: m.role === 'user',
         })),
       );
+      // Check for task context from ResponsePage
+      const taskCtx = location.state?.taskContext;
+      if (taskCtx) {
+        setTaskContext(taskCtx);
+      }
+
       const initialMessage = location.state?.initialMessage;
       if (initialMessage && prevInitialMessageRef.current !== initialMessage) {
         prevInitialMessageRef.current = initialMessage;
@@ -94,8 +107,17 @@ const ChatPage = () => {
           <button className={styles.backButton} onClick={() => navigate('/')}>
             ←
           </button>
-          <span className={styles.chatTitle}>Chat with Assistant</span>
+          <span className={styles.chatTitle}>
+            {taskContext ? `Working on Task` : 'Chat with Assistant'}
+          </span>
         </div>
+
+        {taskContext && (
+          <div className={styles.taskBanner}>
+            <div className={styles.taskTitle}>🎯 Current Task:</div>
+            <div className={styles.taskText}>{taskContext.task}</div>
+          </div>
+        )}
 
         <div className={styles.chatHistory} ref={chatHistoryRef}>
           {messages.map((msg) => (
@@ -115,13 +137,15 @@ const ChatPage = () => {
             ref={inputRef}
             type="text"
             className={styles.chatInput}
-            placeholder={PROMPTS.CHAT_PLACEHOLDER}
+            placeholder={
+              taskContext ? 'Ask questions or share your progress...' : PROMPTS.CHAT_PLACEHOLDER
+            }
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            onKeyUp={(e) => e.key === 'Enter' && handleSend()}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
           />
           <button className={styles.sendButton} onClick={() => handleSend()}>
-            Send
+            ↑
           </button>
         </div>
         <div className={styles.inputLabel}>{PROMPTS.INPUT_LABEL}</div>

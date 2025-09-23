@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrediction } from '../hooks/usePrediction';
 import { PROMPTS } from '../data-layer/prompts';
+import ScoreWidget from './ScoreWidget';
 import styles from './HomePage.module.css';
 
 const HomePage = () => {
@@ -24,6 +25,7 @@ const HomePage = () => {
 
   return (
     <div className={styles.container}>
+      <ScoreWidget />
       <div className={styles.header}>
         <div className={styles.star}>✨</div>
         <div className={styles.greeting}>Hi, I am your personal assistant</div>

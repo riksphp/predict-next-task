@@ -42,6 +42,31 @@
   font-size: 16px;
 }
 
+.taskBanner {
+  background: rgba(255, 71, 87, 0.15);
+  border: 1px solid rgba(255, 71, 87, 0.3);
+  margin: 10px 15px;
+  padding: 12px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.taskTitle {
+  color: #ff4757;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.taskText {
+  color: white;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
 .chatHistory {
   flex: 1;
   padding: 15px;

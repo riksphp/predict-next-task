@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { predictNextTask } from '../services/predictService';
-import { getUserContext } from '../data-layer/userContextStorage';
 
 function formatResponse(text: string): { mainTask: string; reasoning: string } {
   const cleaned = text
@@ -9,11 +8,13 @@ function formatResponse(text: string): { mainTask: string; reasoning: string } {
     .replace(/Reasoning:|Task Suggestion:|Therefore, I suggest:/gi, '')
     .replace(/\n\s*\n/g, '\n')
     .trim();
-  
-  const lines = cleaned.split('\n').filter(line => line.trim());
-  const mainTask = lines.find(line => line.match(/^1\./))?.replace(/^1\.\s*/, '') || lines[0] || '';
-  const reasoning = lines.find(line => line.match(/^2\./))?.replace(/^2\.\s*/, '') || lines[1] || '';
-  
+
+  const lines = cleaned.split('\n').filter((line) => line.trim());
+  const mainTask =
+    lines.find((line) => line.match(/^1\./))?.replace(/^1\.\s*/, '') || lines[0] || '';
+  const reasoning =
+    lines.find((line) => line.match(/^2\./))?.replace(/^2\.\s*/, '') || lines[1] || '';
+
   return { mainTask, reasoning };
 }
 
@@ -22,9 +23,7 @@ export function usePrediction() {
 
   async function predict(): Promise<{ mainTask: string; reasoning: string }> {
     setLoading(true);
-    const userContext = await getUserContext();
-    const contextString = JSON.stringify(userContext, null, 2);
-    const prediction = await predictNextTask(contextString);
+    const prediction = await predictNextTask();
     const formatted = formatResponse(prediction);
     setLoading(false);
     return formatted;

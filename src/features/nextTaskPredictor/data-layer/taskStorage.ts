@@ -9,9 +9,12 @@ export async function getPredictedTasks(): Promise<string[]> {
   try {
     if (hasChromeStorage()) {
       return new Promise((resolve) => {
-        window.chrome!.storage!.local.get([PREDICTED_TASKS_KEY], (items: Record<string, unknown>) => {
-          resolve((items?.[PREDICTED_TASKS_KEY] as string[]) || []);
-        });
+        window.chrome!.storage!.local.get(
+          [PREDICTED_TASKS_KEY],
+          (items: Record<string, unknown>) => {
+            resolve((items?.[PREDICTED_TASKS_KEY] as string[]) || []);
+          },
+        );
       });
     }
     const raw = localStorage.getItem(PREDICTED_TASKS_KEY);
@@ -39,9 +42,12 @@ export async function getCompletedTasks(): Promise<string[]> {
   try {
     if (hasChromeStorage()) {
       return new Promise((resolve) => {
-        window.chrome!.storage!.local.get([COMPLETED_TASKS_KEY], (items: Record<string, unknown>) => {
-          resolve((items?.[COMPLETED_TASKS_KEY] as string[]) || []);
-        });
+        window.chrome!.storage!.local.get(
+          [COMPLETED_TASKS_KEY],
+          (items: Record<string, unknown>) => {
+            resolve((items?.[COMPLETED_TASKS_KEY] as string[]) || []);
+          },
+        );
       });
     }
     const raw = localStorage.getItem(COMPLETED_TASKS_KEY);
@@ -68,7 +74,7 @@ export async function saveCompletedTasks(tasks: string[]): Promise<void> {
 export async function addPredictedTask(task: string): Promise<void> {
   const tasks = await getPredictedTasks();
   const completed = await getCompletedTasks();
-  
+
   if (!tasks.includes(task) && !completed.includes(task)) {
     await savePredictedTasks([...tasks, task]);
   }
@@ -77,7 +83,15 @@ export async function addPredictedTask(task: string): Promise<void> {
 export async function completeTask(task: string): Promise<void> {
   const predicted = await getPredictedTasks();
   const completed = await getCompletedTasks();
-  
-  await savePredictedTasks(predicted.filter(t => t !== task));
+
+  // Remove from predicted and add to completed
+  await savePredictedTasks(predicted.filter((t) => t !== task));
   await saveCompletedTasks([...completed, task]);
+
+  // Award points for task completion
+  const { awardPointsForTaskCompletion } = await import('./scoreStorage');
+  const { categorizeTask } = await import('./taskCategoryStorage');
+
+  const taskCategory = categorizeTask(task);
+  await awardPointsForTaskCompletion(task, taskCategory);
 }
