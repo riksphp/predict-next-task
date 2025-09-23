@@ -1,5 +1,6 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   font-family: 'Rubik', sans-serif;
   color: white;
@@ -324,6 +325,9 @@
 /* Notes Widget */
 .notesWidget {
   grid-column: span 1;
+  display: flex;
+  flex-direction: column;
+  height: 28rem; /* fixed height for consistent layout */
 }
 
 .headerActions {
@@ -384,9 +388,10 @@
 .accordionItem {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 10px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
   overflow: hidden;
   transition: all 0.3s ease;
+  flex-shrink: 0; /* prevent accordion items from shrinking */
 }
 
 .accordionItem:hover {
@@ -397,9 +402,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px;
+  padding: 12px 15px;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-height: 60px; /* fixed minimum height for headers */
 }
 
 .accordionHeader:hover {
@@ -449,8 +455,9 @@
 .accordionContent {
   padding: 0 15px 15px 15px;
   animation: expandAccordion 0.3s ease-out;
-  max-height: 200px;
+  max-height: 150px; /* fixed max height for content */
   overflow-y: auto;
+  flex-shrink: 0; /* prevent content from shrinking */
 }
 
 @keyframes expandAccordion {
@@ -461,7 +468,7 @@
   }
   to {
     opacity: 1;
-    max-height: 200px;
+    max-height: 150px; /* match content max-height */
     padding: 0 15px 15px 15px;
   }
 }
@@ -499,9 +506,11 @@
 .notesList {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  max-height: 300px;
-  overflow-y: auto;
+  gap: 8px;
+  flex: 1;           /* fill available height in widget */
+  min-height: 0;     /* allow child to shrink for scrolling */
+  overflow-y: auto;  /* enable scroll inside notes list */
+  padding: 5px;      /* small padding for scroll area */
 }
 
 .noteItem {
