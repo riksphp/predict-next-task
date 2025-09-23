@@ -27,32 +27,57 @@ function hasChromeStorage(): boolean {
 
 export async function getUserScore(): Promise<UserScore> {
   try {
+    let score: UserScore;
     if (hasChromeStorage()) {
-      return new Promise((resolve) => {
+      score = await new Promise((resolve) => {
         window.chrome!.storage!.local.get([USER_SCORE_KEY], (items: Record<string, unknown>) => {
           resolve((items?.[USER_SCORE_KEY] as UserScore) || getDefaultScore());
         });
       });
+    } else {
+      const raw = localStorage.getItem(USER_SCORE_KEY);
+      score = raw ? JSON.parse(raw) : getDefaultScore();
     }
-    const raw = localStorage.getItem(USER_SCORE_KEY);
-    return raw ? JSON.parse(raw) : getDefaultScore();
+
+    console.log('📖 getUserScore returned:', {
+      totalPoints: score.totalPoints,
+      completedTasks: score.completedTasks,
+      level: score.level,
+      timestamp: score.lastUpdated,
+    });
+
+    return score;
   } catch {
-    return getDefaultScore();
+    const defaultScore = getDefaultScore();
+    console.log('📖 getUserScore fallback to default:', defaultScore);
+    return defaultScore;
   }
 }
 
 export async function saveUserScore(score: UserScore): Promise<void> {
   const withTimestamp = { ...score, lastUpdated: new Date().toISOString() };
+
+  console.log('💾 saveUserScore called with:', {
+    totalPoints: withTimestamp.totalPoints,
+    completedTasks: withTimestamp.completedTasks,
+    level: withTimestamp.level,
+  });
+
   try {
     if (hasChromeStorage()) {
       await new Promise<void>((resolve) => {
-        window.chrome!.storage!.local.set({ [USER_SCORE_KEY]: withTimestamp }, () => resolve());
+        window.chrome!.storage!.local.set({ [USER_SCORE_KEY]: withTimestamp }, () => {
+          console.log('💾 Chrome storage.local.set completed');
+          resolve();
+        });
       });
+      console.log('💾 saveUserScore finished successfully (Chrome)');
       return;
     }
     localStorage.setItem(USER_SCORE_KEY, JSON.stringify(withTimestamp));
-  } catch {
-    // ignore
+    console.log('💾 saveUserScore finished successfully (localStorage)');
+  } catch (error) {
+    console.error('💾 Failed to save user score:', error);
   }
 }
 
@@ -138,10 +163,38 @@ export async function awardPointsForTaskCompletion(
   task: string,
   category?: string,
 ): Promise<UserScore> {
+  console.log('🎁 awardPointsForTaskCompletion called for:', task, 'category:', category);
+
+  // Check if we already have a score entry for this exact task to prevent duplicates
+  const existingScoreHistory = await getScoreHistory();
+  const taskAlreadyScored = existingScoreHistory.some(
+    (entry) => entry.task === task && entry.interactionType === 'task_completion',
+  );
+
+  console.log('📊 Score check:', {
+    taskAlreadyScored,
+    existingEntriesCount: existingScoreHistory.length,
+    matchingEntries: existingScoreHistory.filter((entry) => entry.task === task).length,
+  });
+
+  if (taskAlreadyScored) {
+    console.log('❌ Task already scored, skipping points award:', task);
+    return await getUserScore(); // Return current score without changes
+  }
+
+  console.log('✅ Proceeding with scoring for:', task);
+
   const currentScore = await getUserScore();
   const completionPoints = 5; // Base points for completing any task
   const categoryBonus = getCategoryBonus(category);
   const totalPoints = completionPoints + categoryBonus;
+
+  console.log('💰 Points calculation:', {
+    currentPoints: currentScore.totalPoints,
+    completionPoints,
+    categoryBonus,
+    totalPointsToAdd: totalPoints,
+  });
 
   // Create score entry for task completion
   const scoreEntry: ScoreEntry = {
@@ -162,8 +215,8 @@ export async function awardPointsForTaskCompletion(
   const newLevel = calculateLevel(newTotalPoints);
 
   // Calculate new average score including task completion scores
-  const scoreHistory = await getScoreHistory();
-  const allScores = [...scoreHistory, scoreEntry];
+  const currentScoreHistory = await getScoreHistory();
+  const allScores = [...currentScoreHistory, scoreEntry];
   const newAverageScore =
     allScores.length > 0
       ? Math.round(allScores.reduce((sum, entry) => sum + entry.percentage, 0) / allScores.length)
@@ -178,9 +231,26 @@ export async function awardPointsForTaskCompletion(
   };
 
   // Save both score and history
+  console.log('💾 Saving updated score:', {
+    newTotalPoints: updatedScore.totalPoints,
+    newLevel: updatedScore.level,
+    newCompletedTasks: updatedScore.completedTasks,
+  });
+
   await saveUserScore(updatedScore);
   await addScoreEntry(scoreEntry);
 
+  // Verify the data was saved correctly
+  const verifyScore = await getUserScore();
+  const verifyHistory = await getScoreHistory();
+  console.log('🔍 Verification after save:', {
+    actualTotalPoints: verifyScore.totalPoints,
+    actualCompletedTasks: verifyScore.completedTasks,
+    historyCount: verifyHistory.length,
+    lastHistoryEntry: verifyHistory[0]?.task || 'none',
+  });
+
+  console.log('🎉 Scoring completed successfully for:', task);
   return updatedScore;
 }
 

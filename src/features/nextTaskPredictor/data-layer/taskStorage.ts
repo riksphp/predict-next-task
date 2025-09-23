@@ -81,17 +81,40 @@ export async function addPredictedTask(task: string): Promise<void> {
 }
 
 export async function completeTask(task: string): Promise<void> {
+  console.log('🎯 completeTask called for:', task);
+
   const predicted = await getPredictedTasks();
   const completed = await getCompletedTasks();
+
+  console.log('📊 Current state:', {
+    predictedCount: predicted.length,
+    completedCount: completed.length,
+    taskInPredicted: predicted.includes(task),
+    taskInCompleted: completed.includes(task),
+  });
+
+  // Check if task is already completed to prevent double scoring
+  if (completed.includes(task)) {
+    console.log('❌ Task already completed, skipping scoring:', task);
+    return;
+  }
+
+  console.log('✅ Proceeding with task completion for:', task);
 
   // Remove from predicted and add to completed
   await savePredictedTasks(predicted.filter((t) => t !== task));
   await saveCompletedTasks([...completed, task]);
 
-  // Award points for task completion
+  console.log('💾 Task moved to completed list:', task);
+
+  // Award points for task completion (only if not already completed)
   const { awardPointsForTaskCompletion } = await import('./scoreStorage');
   const { categorizeTask } = await import('./taskCategoryStorage');
 
   const taskCategory = categorizeTask(task);
+  console.log('🏷️ Task category determined:', taskCategory);
+
+  console.log('🎁 About to award points for:', task);
   await awardPointsForTaskCompletion(task, taskCategory);
+  console.log('✨ Points awarded for:', task);
 }

@@ -64,6 +64,19 @@ const DashboardPage = () => {
       setScoreHistory(history);
       setCategoryStats(categories);
       setGeneratedNotes(notes);
+
+      // Debug: Log loaded data
+      console.log('📊 Dashboard data loaded:', {
+        predictedTasksCount: predicted.length,
+        completedTasksCount: completed.length,
+        currentScore: score?.totalPoints || 0,
+        currentLevel: score?.level || 1,
+        historyEntriesCount: history.length,
+        lastCompletedTask: completed[completed.length - 1] || 'none',
+      });
+
+      // Run data integrity check
+      await checkDataIntegrity();
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
     } finally {
@@ -71,13 +84,53 @@ const DashboardPage = () => {
     }
   }
 
+  const [processingTasks, setProcessingTasks] = useState<Set<string>>(new Set());
+
   async function handleTodoComplete(todo: string, completed: boolean) {
+    console.log('handleTodoComplete called:', {
+      todo,
+      completed,
+      processingTasks: Array.from(processingTasks),
+    });
+
     if (completed) {
-      await completeTask(todo);
-      // Remove from predicted tasks and refresh data
-      setPredictedTasks((prev) => prev.filter((task) => task !== todo));
-      // Refresh all data to get updated completed tasks
-      await loadDashboardData();
+      // Check if task is already being processed
+      if (processingTasks.has(todo)) {
+        console.log('Task already being processed, skipping:', todo);
+        return;
+      }
+
+      // Check if task is already in completed tasks to prevent double completion
+      if (completedTasks.includes(todo)) {
+        console.log('Task already completed, skipping:', todo);
+        return;
+      }
+
+      // Mark task as being processed
+      setProcessingTasks((prev) => new Set([...prev, todo]));
+
+      try {
+        console.log('Starting task completion for:', todo);
+        await completeTask(todo);
+        console.log('Task completion finished for:', todo);
+
+        // Remove from predicted tasks immediately for better UX
+        setPredictedTasks((prev) => prev.filter((task) => task !== todo));
+
+        // Refresh all data to get updated completed tasks and scores
+        await loadDashboardData();
+        console.log('Dashboard data reloaded after completing:', todo);
+      } catch (error) {
+        console.error('Error completing task:', error);
+        // Optionally show user-friendly error message
+      } finally {
+        // Remove task from processing set
+        setProcessingTasks((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(todo);
+          return newSet;
+        });
+      }
     }
   }
 
@@ -95,6 +148,42 @@ const DashboardPage = () => {
     } finally {
       setGeneratingNote(false);
     }
+  }
+
+  // Debug function to check for data integrity issues
+  async function checkDataIntegrity() {
+    console.log('🔍 Running data integrity check...');
+
+    const [score, history, , completed] = await Promise.all([
+      getUserScore(),
+      getScoreHistory(),
+      getPredictedTasks(),
+      getCompletedTasks(),
+    ]);
+
+    // Check for duplicate entries in score history
+    const taskCompletions = history.filter((entry) => entry.interactionType === 'task_completion');
+    const taskNames = taskCompletions.map((entry) => entry.task);
+    const uniqueTaskNames = [...new Set(taskNames)];
+
+    console.log('🏆 Score integrity check:', {
+      totalScore: score?.totalPoints || 0,
+      recordedCompletedTasks: score?.completedTasks || 0,
+      actualCompletedTasksInList: completed.length,
+      scoreHistoryEntries: history.length,
+      taskCompletionEntries: taskCompletions.length,
+      uniqueCompletedTasks: uniqueTaskNames.length,
+      hasDuplicateScoreEntries: taskCompletions.length !== uniqueTaskNames.length,
+    });
+
+    if (taskCompletions.length !== uniqueTaskNames.length) {
+      console.warn('⚠️ DUPLICATE SCORE ENTRIES DETECTED!');
+      const duplicates = taskNames.filter((task, index) => taskNames.indexOf(task) !== index);
+      console.log('🔄 Duplicate tasks:', [...new Set(duplicates)]);
+    }
+
+    // Expose to global scope for manual testing
+    (window as any).checkDataIntegrity = checkDataIntegrity;
   }
 
   function toggleNoteExpansion(noteId: string) {
@@ -138,7 +227,8 @@ const DashboardPage = () => {
     );
   }
 
-  const currentTodos = predictedTasks || [];
+  // Filter out any predicted tasks that are already completed (data consistency)
+  const currentTodos = (predictedTasks || []).filter((task) => !completedTasks.includes(task));
   const recentScores = scoreHistory.slice(0, 5);
   const categoryEntries = Object.entries(categoryStats).slice(0, 6);
   const recentCompletedTasks = completedTasks.slice(-5).reverse(); // Last 5 completed tasks
@@ -213,15 +303,21 @@ const DashboardPage = () => {
           <div className={styles.todoList}>
             {currentTodos.length > 0 ? (
               currentTodos.map((todo, index) => (
-                <div key={index} className={styles.todoItem}>
+                <div key={`todo-${todo}-${index}`} className={styles.todoItem}>
                   <label className={styles.todoCheckbox}>
                     <input
                       type="checkbox"
+                      disabled={processingTasks.has(todo)}
                       onChange={(e) => handleTodoComplete(todo, e.target.checked)}
                     />
                     <span className={styles.checkmark}></span>
                   </label>
-                  <span className={styles.todoText}>{todo}</span>
+                  <span className={styles.todoText}>
+                    {todo}
+                    {processingTasks.has(todo) && (
+                      <span className={styles.processingIndicator}> ⏳</span>
+                    )}
+                  </span>
                 </div>
               ))
             ) : (

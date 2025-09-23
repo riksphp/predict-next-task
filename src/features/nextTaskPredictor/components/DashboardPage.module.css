@@ -294,6 +294,11 @@
   line-height: 1.4;
 }
 
+.processingIndicator {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+}
+
 .completedIcon {
   width: 20px;
   height: 20px;
