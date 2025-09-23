@@ -1,131 +1,327 @@
-### Next Task Predictor (base-truths)
+# Next Task Predictor - Agentic AI Personal Assistant
 
-This project is an Agentic AI Personal Assistant built as a Chrome Extension.
-Unlike typical assistants that wait for user prompts, this assistant can initiate interactions, suggesting the next meaningful task based on a unique foundation of philosophy + user context.
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![Chrome Extension](https://img.shields.io/badge/Chrome-Extension-4285F4?style=flat-square&logo=google-chrome&logoColor=white)](https://developer.chrome.com/docs/extensions/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-The goal is not just productivity, but mindful productivity — where every suggestion is grounded in timeless truths.
-Minimal Chrome Extension (Manifest V3) built with React 18, TypeScript, Vite, and Tailwind CSS.
+## 🎯 Project Overview
 
-- **Popup shows**: five base truths
-- **Context input**: textarea for extra context (name, profession, todo, constraints)
-- **Action**: “Predict Next Task” → returns placeholder text (ready to be wired to real logic)
+An intelligent Chrome Extension that serves as your personal AI assistant, proactively suggesting meaningful tasks based on philosophical foundations and user context. Unlike traditional assistants that wait for commands, this system initiates interactions and provides mindful productivity guidance.
+
+### 🌟 Key Features
+
+- **🧠 Intelligent Task Prediction**: AI-powered suggestions based on user context and behavior patterns
+- **📊 Comprehensive Dashboard**: Score tracking, task management, and learning notes
+- **💬 Contextual Chat**: Interactive conversations with task awareness
+- **📚 Educational Notes**: Auto-generated learning content based on user activity
+- **🎯 SMART Goals**: Tasks designed to be Specific, Measurable, Achievable, Relevant, Time-bound
+- **📈 Progress Tracking**: Level-based scoring system with category bonuses
+- **🔄 Anti-Repetition Logic**: Intelligent variety enforcement to prevent task monotony
 
 ---
 
-### Tech Stack
+## 🏗️ System Architecture
 
-- React 18 + TypeScript
-- Vite (build and dev server)
-- Tailwind CSS (via PostCSS)
-- ESLint (React + TS + Hooks + a11y) and Prettier
+### High-Level Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           PERSONAL ASSISTANT SYSTEM                            │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                 │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │   FRONTEND UI   │    │  BUSINESS LOGIC │    │  DATA STORAGE   │            │
+│  │   COMPONENTS    │◄──►│    SERVICES     │◄──►│     LAYER       │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│          │                        │                        │                   │
+│          ▼                        ▼                        ▼                   │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐            │
+│  │    ROUTING      │    │   AI SERVICES   │    │  CHROME/LOCAL   │            │
+│  │   NAVIGATION    │    │   (GEMINI API)  │    │    STORAGE      │            │
+│  └─────────────────┘    └─────────────────┘    └─────────────────┘            │
+│                                                                                 │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Frontend Components
+
+- **🏠 HomePage**: Input interface and task prediction
+- **📋 ResponsePage**: Task display and completion interface
+- **💬 ChatPage**: Interactive conversation with context awareness
+- **📊 DashboardPage**: Comprehensive analytics and management
+- **🏆 ScoreWidget**: Global score and level display
 
 ---
 
-### Project Structure
+## 🔄 User Journey Flow
+
+```
+USER INPUT → CONTEXT EXTRACTION → AI PROCESSING → TASK PREDICTION → INTERACTION
+     │              │                    │              │              │
+     ▼              ▼                    ▼              ▼              ▼
+┌─────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐   ┌─────────────┐
+│HomePage │   │  ChatPage   │   │ Prediction  │   │ Response    │   │ Dashboard   │
+│         │──►│             │   │  Service    │──►│    Page     │   │    Page     │
+│• Input  │   │• Messages   │   │             │   │             │   │             │
+│• Predict│   │• Context    │   │• Gather Data│   │• Show Task  │   │• Analytics  │
+│• Chat   │   │• Extract    │   │• Priority   │   │• Complete   │   │• Management │
+└─────────┘   └─────────────┘   └─────────────┘   └─────────────┘   └─────────────┘
+```
+
+---
+
+## 🛠️ Tech Stack
+
+### Core Technologies
+
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS + CSS Modules
+- **AI Integration**: Google Gemini API
+- **Storage**: Chrome Extension API + localStorage fallback
+- **Routing**: React Router (Memory Router)
+
+### Development Tools
+
+- **Linting**: ESLint (React + TypeScript + Hooks + a11y)
+- **Formatting**: Prettier
+- **Type Checking**: TypeScript strict mode
+- **Package Manager**: npm
+
+---
+
+## 📁 Project Structure
 
 ```
 base-truths/
-  public/
-    manifest.json        # MV3 manifest (popup points to index.html; uses storage permission)
-    icon128.png          # Extension icon
-  src/
-    features/
-      nextTaskPredictor/
-        components/
-          Popup.tsx      # Popup UI: base truths, context, predict button
-        data-layer/
-          baseTruths.ts  # Hardcoded base truths JSON (exported)
-          storage.ts     # chrome.storage.local with localStorage fallback
-        data-store/
-          userContextStore.tsx  # React context provider + hooks for user context
-        services/
-          predictService.ts     # Placeholder prediction service
-    main.tsx             # React entry; wraps Popup with UserContextProvider
-    styles.css           # Tailwind entry (@tailwind base/components/utilities)
-  index.html             # Vite HTML; used as the popup page
-  vite.config.ts         # Vite config with React plugin
-  tailwind.config.ts     # Tailwind content globs
-  postcss.config.js      # Tailwind + autoprefixer
-  tsconfig.json          # TypeScript config
-  package.json           # Scripts (dev/build/preview/lint) and deps
-
-# Note: legacy files (manifest.json, popup.html, popup.js in this folder root)
-# were from an earlier plain MV3 POC; the extension build now uses /public/manifest.json.
+├── public/
+│   ├── manifest.json         # Chrome Extension Manifest V3
+│   └── icon128.png          # Extension icon
+├── src/
+│   ├── features/
+│   │   └── nextTaskPredictor/
+│   │       ├── components/   # UI Components
+│   │       │   ├── HomePage.tsx
+│   │       │   ├── ResponsePage.tsx
+│   │       │   ├── ChatPage.tsx
+│   │       │   ├── DashboardPage.tsx
+│   │       │   ├── ScoreWidget.tsx
+│   │       │   └── Popup.tsx
+│   │       ├── data-layer/   # Data Management
+│   │       │   ├── conversationStorage.ts
+│   │       │   ├── userProfileStorage.ts
+│   │       │   ├── taskStorage.ts
+│   │       │   ├── scoreStorage.ts
+│   │       │   ├── notesStorage.ts
+│   │       │   ├── prompts.ts
+│   │       │   └── geminiApi.ts
+│   │       ├── services/     # Business Logic
+│   │       │   ├── predictService.ts
+│   │       │   ├── contextService.ts
+│   │       │   ├── analysisService.ts
+│   │       │   ├── scoringService.ts
+│   │       │   └── noteGenerationService.ts
+│   │       ├── constants/    # Configuration
+│   │       │   ├── taskCategories.ts
+│   │       │   └── interactiveTasks.ts
+│   │       └── hooks/        # Custom Hooks
+│   │           └── usePrediction.ts
+│   ├── main.tsx             # Application entry point
+│   └── styles.css           # Global styles
+├── index.html               # Vite HTML template
+├── vite.config.ts          # Vite configuration
+├── tailwind.config.js      # Tailwind configuration
+├── tsconfig.json           # TypeScript configuration
+└── package.json            # Dependencies and scripts
 ```
 
 ---
 
-### Scripts
+## 🚀 Getting Started
 
-Run these in `base-truths/`:
+### Prerequisites
+
+- Node.js (v16 or higher)
+- npm
+- Chrome Browser
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone <repository-url>
+   cd EAGV2/base-truths
+   ```
+
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Development**
+   ```bash
+   npm run dev          # Start development server
+   npm run build        # Build for production
+   npm run preview      # Preview production build
+   npm run lint         # Run ESLint
+   ```
+
+### Chrome Extension Setup
+
+1. **Build the extension**
 
 ```bash
-npm i                # install deps
-npm run dev          # Vite dev server (web preview)
-npm run build        # TS type-check + Vite build → dist/
-npm run preview      # Preview the production build
-npm run lint         # ESLint (TS, React, Hooks, a11y)
+   npm run build
 ```
 
----
-
-### Load the Extension in Chrome (MV3)
-
-1. `npm run build` to produce `dist/`
-2. Open `chrome://extensions`
-3. Toggle on Developer Mode (top-right)
-4. Click “Load unpacked” → select `.../EAGV2/base-truths/dist`
-5. Pin the extension and open the popup
-
-The popup uses `index.html` built by Vite; the MV3 manifest is copied from `public/manifest.json`.
+2. **Load in Chrome**
+   - Open `chrome://extensions`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `dist/` folder
+   - Pin the extension to your toolbar
 
 ---
 
-### Architecture
+## 🎮 Usage Guide
 
-- **Feature module**: `src/features/nextTaskPredictor`
-  - `components/Popup.tsx`: Renders base truths, textarea, predict button
-  - `data-layer/baseTruths.ts`: Hardcoded base truths JSON
-  - `data-layer/storage.ts`: Persistence via `chrome.storage.local`; falls back to `localStorage` in dev
-  - `data-store/userContextStore.tsx`: React context for user context state and pretty JSON
-  - `services/predictService.ts`: Placeholder suggestion generator
-- **Entry**: `src/main.tsx` mounts `<Popup />` wrapped by `<UserContextProvider>` into `#root` in `index.html`.
-- **Styling**: Tailwind classes in JSX; generated from `src/styles.css` with `@tailwind` directives.
-- **Build**: Vite outputs assets to `dist/` (`vite.config.ts`), and Chrome loads `dist/index.html` as the popup defined in `public/manifest.json`.
-- **No background/content scripts** in this minimal version. Add a `service_worker` later if you integrate real prediction logic.
+### Basic Workflow
 
-#### Storage behavior
+1. **📝 Input Context**: Enter your current situation, goals, or preferences
+2. **🎯 Predict Task**: AI generates a personalized, actionable task
+3. **💬 Interact**: Chat about the task or ask for clarification
+4. **✅ Complete**: Mark tasks as complete to earn points and level up
+5. **📊 Track Progress**: Monitor your development in the dashboard
 
-- Uses `chrome.storage.local` when running as an extension (MV3) with the `storage` permission.
-- Falls back to `localStorage` when running via `npm run dev` (web preview).
+### Features Deep Dive
+
+#### 🧠 Task Prediction System
+
+- **Priority-based**: User input > Professional growth > Personal growth > Foundational
+- **SMART Goals**: All tasks are designed to be achievable within 30 minutes
+- **Anti-repetition**: Intelligent logic prevents monotonous suggestions
+- **Context-aware**: Considers your profession, mood, and recent activity
+
+#### 📊 Scoring System
+
+- **Base Points**: 5 points for task completion
+- **Category Bonuses**: Additional points based on task type
+- **Level Progression**: 100 points per level
+- **Interactive Tasks**: Special scoring for AI interactions
+
+#### 📚 Learning Notes
+
+- **Auto-generation**: Creates educational content based on your activity
+- **Profession-focused**: Tailored to your specific field
+- **Request-based**: Generate notes on specific topics via chat
+- **Scrollable Interface**: Organized accordion-style display
 
 ---
 
-### Tailwind Usage
+## 🔧 Configuration
 
-- Utility-first classes are used directly in JSX (e.g., `min-w-[360px]`, `bg-neutral-950`, `text-white`).
-- To customize, edit `tailwind.config.ts` and/or add component classes in `src/styles.css`.
+### Environment Setup
+
+Create a `.env` file in the root directory:
+
+```env
+VITE_GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### Gemini API Integration
+
+The system uses Google's Gemini API for intelligent task prediction and context extraction. Obtain an API key from [Google AI Studio](https://makersuite.google.com/app/apikey).
 
 ---
 
-### ESLint/Prettier
+## 📈 Roadmap
 
-- ESLint rules for React, TypeScript, hooks, and accessibility are enabled via `.eslintrc.cjs`.
-- Formatting via Prettier (`.prettierrc`) with ESLint config integration (`eslint-config-prettier`).
+### Current Features (MVP1) ✅
 
-Run:
+- Task prediction with context awareness
+- Interactive chat interface
+- Comprehensive scoring system
+- Dashboard analytics
+- Educational note generation
+- Anti-repetition logic
+
+### Planned Features (MVP2) 🚧
+
+- **Multi-Agent Architecture**: Specialized AI agents for different domains
+- **Advanced Analytics**: Deeper insights into productivity patterns
+- **Calendar Integration**: Task scheduling and time management
+- **Collaborative Features**: Team productivity insights
+- **Mobile Companion**: Cross-platform synchronization
+
+---
+
+## 🧪 Development
+
+### Code Quality
+
+- **TypeScript**: Strict type checking enabled
+- **ESLint**: React, TypeScript, hooks, and accessibility rules
+- **Prettier**: Consistent code formatting
+- **Modular Architecture**: Clear separation of concerns
+
+### Testing
 
 ```bash
-npm run lint
+npm run lint         # Code quality checks
+npm run build        # Production build verification
 ```
+
+### Debugging
+
+- Console logging throughout the application
+- Chrome DevTools integration
+- Error boundaries for robust error handling
 
 ---
 
-### Extend: Real Prediction
+## 🤝 Contributing
 
-To replace the placeholder suggestion with real logic:
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- Add a background `service_worker` and message from the popup, or
-- Call a local model/remote API from the popup, handling CSP and permissions via `manifest.json`.
+### Development Guidelines
 
-If adding a service worker, move/extend the MV3 manifest in `public/manifest.json` with the `background.service_worker` field and required permissions.
+- Follow TypeScript best practices
+- Maintain component modularity
+- Write descriptive commit messages
+- Test thoroughly before submitting
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Google Gemini**: AI processing capabilities
+- **React Team**: Frontend framework
+- **Vite**: Lightning-fast build tool
+- **Tailwind CSS**: Utility-first styling
+
+---
+
+## 📞 Support
+
+For questions, suggestions, or issues:
+
+- Create an issue in the repository
+- Check the architecture documentation in `ARCHITECTURE.md`
+- Review the visual architecture in `VISUAL_ARCHITECTURE.md`
+
+---
+
+**Built with ❤️ for mindful productivity and personal growth**
