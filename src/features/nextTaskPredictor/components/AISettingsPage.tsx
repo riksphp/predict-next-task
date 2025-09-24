@@ -134,6 +134,40 @@ const AISettingsPage = () => {
         </div>
       </div>
 
+      <div className={styles.footer}>
+        <div className={styles.providerHelp}>
+          <h4>Need API Keys?</h4>
+          <ul>
+            <li>
+              <strong>Google Gemini:</strong> Get your key from{' '}
+              <a
+                href="https://makersuite.google.com/app/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Google AI Studio
+              </a>
+            </li>
+            <li>
+              <strong>OpenAI:</strong> Get your key from{' '}
+              <a
+                href="https://platform.openai.com/api-keys"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                OpenAI Platform
+              </a>
+            </li>
+            <li>
+              <strong>Groq:</strong> Get your key from{' '}
+              <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">
+                Groq Console
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
       <div className={styles.settingsForm}>
         <div className={styles.section}>
           <h3 className={styles.sectionTitle}>Provider Configuration</h3>
@@ -263,40 +297,6 @@ const AISettingsPage = () => {
           <button className={styles.cancelButton} onClick={() => navigate('/dashboard')}>
             Cancel
           </button>
-        </div>
-      </div>
-
-      <div className={styles.footer}>
-        <div className={styles.providerHelp}>
-          <h4>Need API Keys?</h4>
-          <ul>
-            <li>
-              <strong>Google Gemini:</strong> Get your key from{' '}
-              <a
-                href="https://makersuite.google.com/app/apikey"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Google AI Studio
-              </a>
-            </li>
-            <li>
-              <strong>OpenAI:</strong> Get your key from{' '}
-              <a
-                href="https://platform.openai.com/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                OpenAI Platform
-              </a>
-            </li>
-            <li>
-              <strong>Groq:</strong> Get your key from{' '}
-              <a href="https://console.groq.com/keys" target="_blank" rel="noopener noreferrer">
-                Groq Console
-              </a>
-            </li>
-          </ul>
         </div>
       </div>
     </div>
