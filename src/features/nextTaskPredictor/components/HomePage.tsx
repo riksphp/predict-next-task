@@ -28,7 +28,10 @@ const HomePage = () => {
       <ScoreWidget />
       <div className={styles.header}>
         <div className={styles.star}>✨</div>
-        <div className={styles.greeting}>Hi, I am your personal assistant</div>
+        <div className={styles.headline}>Your AI copilot for focused progress</div>
+        <div className={styles.subheadline}>
+          Plan smarter, ship faster, and stay in flow—one task at a time.
+        </div>
       </div>
 
       <div className={styles.middle}>

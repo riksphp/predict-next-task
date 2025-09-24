@@ -56,12 +56,25 @@
   }
 }
 
-.greeting {
-  font-size: 1.1rem;
+.headline {
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.2px;
+  background: linear-gradient(135deg, #f0f6fc 0%, #a7c5ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 0.4rem;
+}
+
+.subheadline {
+  font-size: 1rem;
   font-weight: 400;
   text-align: center;
   color: #8b949e;
-  line-height: 1.5;
+  line-height: 1.6;
+  max-width: 36rem;
 }
 
 .middle {
