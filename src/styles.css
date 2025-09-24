@@ -44,13 +44,22 @@
     color: var(--text-primary);
   }
   
-  html, body, #root {
-    width: 40rem;
-    height: 40rem;
+  /* Chrome Extension dimensions */
+  @media all {
+    html[data-extension="true"], 
+    html[data-extension="true"] body, 
+    html[data-extension="true"] #root {
+      width: 40rem;
+      height: 40rem;
+    }
   }
   
   body { 
     margin: 0;
+  }
+  
+  /* Chrome Extension overflow */
+  html[data-extension="true"] body {
     overflow: hidden;
   }
   
