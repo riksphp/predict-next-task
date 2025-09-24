@@ -1,4 +1,5 @@
-import { callGeminiApi } from '../data-layer/geminiApi';
+import { callGeminiApi, callCustomAI } from '../data-layer/geminiApi';
+import { getAISettings } from '../data-layer/aiSettingsStorage';
 import { getPredictedTasks, getCompletedTasks } from '../data-layer/taskStorage';
 import { getUserProfile } from '../data-layer/userProfileStorage';
 import { getOrCreateDefaultThread, getMessages } from '../data-layer/conversationStorage';
@@ -68,7 +69,10 @@ export async function generateEducationalNote(): Promise<GeneratedNote> {
   };
 
   const prompt = createNoteGenerationPrompt(context);
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   let noteData: NoteGenerationResult;
   try {
@@ -245,7 +249,10 @@ Return ONLY valid JSON:
   "category": "user_requested"
 }`;
 
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   let noteData: NoteGenerationResult;
   try {
@@ -291,7 +298,10 @@ Return ONLY valid JSON:
   "category": "${category}"
 }`;
 
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   let noteData: NoteGenerationResult;
   try {

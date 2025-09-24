@@ -13,6 +13,7 @@ import {
 import { getRecentCategoriesCount } from '../data-layer/taskCategoryStorage';
 import { getGeneratedNotes, type GeneratedNote } from '../data-layer/notesStorage';
 import { generateEducationalNote } from '../services/noteGenerationService';
+import { getAISettings, type AISettings } from '../data-layer/aiSettingsStorage';
 import styles from './DashboardPage.module.css';
 
 const DashboardPage = () => {
@@ -28,6 +29,7 @@ const DashboardPage = () => {
   const [generatedNotes, setGeneratedNotes] = useState<GeneratedNote[]>([]);
   const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
   const [generatingNote, setGeneratingNote] = useState(false);
+  const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,18 +39,29 @@ const DashboardPage = () => {
   async function loadDashboardData() {
     setLoading(true);
     try {
-      const [profile, context, analysis, predicted, completed, score, history, categories, notes] =
-        await Promise.all([
-          getUserProfile(),
-          getUserContext(),
-          getUserAnalysis(),
-          getPredictedTasks(),
-          getCompletedTasks(),
-          getUserScore(),
-          getScoreHistory(),
-          getRecentCategoriesCount(168), // Last 7 days
-          getGeneratedNotes(),
-        ]);
+      const [
+        profile,
+        context,
+        analysis,
+        predicted,
+        completed,
+        score,
+        history,
+        categories,
+        notes,
+        settings,
+      ] = await Promise.all([
+        getUserProfile(),
+        getUserContext(),
+        getUserAnalysis(),
+        getPredictedTasks(),
+        getCompletedTasks(),
+        getUserScore(),
+        getScoreHistory(),
+        getRecentCategoriesCount(168), // Last 7 days
+        getGeneratedNotes(),
+        getAISettings(),
+      ]);
 
       setUserProfile(profile);
 
@@ -64,6 +77,7 @@ const DashboardPage = () => {
       setScoreHistory(history);
       setCategoryStats(categories);
       setGeneratedNotes(notes);
+      setAISettings(settings);
 
       // Debug: Log loaded data
       console.log('📊 Dashboard data loaded:', {
@@ -480,6 +494,60 @@ const DashboardPage = () => {
             ) : (
               <div className={styles.emptyState}>
                 <p>Complete interactive tasks to see your scores!</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* AI Configuration Status */}
+        <div className={`${styles.widget} ${styles.aiConfigWidget}`}>
+          <div className={styles.widgetHeader}>
+            <h3>🤖 AI Configuration</h3>
+            <div className={styles.headerActions}>
+              <button className={styles.configureButton} onClick={() => navigate('/ai-settings')}>
+                ⚙️ Configure
+              </button>
+            </div>
+          </div>
+          <div className={styles.aiConfigContent}>
+            {aiSettings ? (
+              <>
+                <div className={styles.configField}>
+                  <span className={styles.fieldLabel}>Provider:</span>
+                  <span className={`${styles.fieldValue} ${styles.providerTag}`}>
+                    {aiSettings.provider === 'gemini'
+                      ? '🟢 Google Gemini'
+                      : aiSettings.provider === 'openai'
+                      ? '🔵 OpenAI'
+                      : aiSettings.provider === 'groq'
+                      ? '🟠 Groq'
+                      : '⚪ Custom API'}
+                  </span>
+                </div>
+                <div className={styles.configField}>
+                  <span className={styles.fieldLabel}>Model:</span>
+                  <span className={styles.fieldValue}>{aiSettings.modelName || 'Default'}</span>
+                </div>
+                <div className={styles.configField}>
+                  <span className={styles.fieldLabel}>Status:</span>
+                  <span
+                    className={`${styles.fieldValue} ${styles.statusTag} ${
+                      aiSettings.apiKey ? styles.configured : styles.notConfigured
+                    }`}
+                  >
+                    {aiSettings.apiKey ? '✅ Configured' : '⚠️ API Key Missing'}
+                  </span>
+                </div>
+              </>
+            ) : (
+              <div className={styles.emptyState}>
+                <p>Configure your AI settings to enable personalized task prediction.</p>
+                <button
+                  className={styles.emptyStateButton}
+                  onClick={() => navigate('/ai-settings')}
+                >
+                  Get Started
+                </button>
               </div>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { PROMPTS } from '../data-layer/prompts';
-import { callGeminiApi } from '../data-layer/geminiApi';
+import { callGeminiApi, callCustomAI } from '../data-layer/geminiApi';
+import { getAISettings } from '../data-layer/aiSettingsStorage';
 import { addNewContext, ContextData, getUserContext } from '../data-layer/userContextStorage';
 import { getBaseTruths } from '../data-layer/baseTruths';
 import { getUserAnalysis } from './analysisService';
@@ -40,7 +41,10 @@ export async function extractContext(
     userInput: enrichedContext,
   });
 
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   let serverResponse = 'Thanks for sharing!';
   let parsed: ContextData | null = null;

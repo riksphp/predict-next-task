@@ -1,5 +1,6 @@
 import { PROMPTS } from '../data-layer/prompts';
-import { callGeminiApi } from '../data-layer/geminiApi';
+import { callGeminiApi, callCustomAI } from '../data-layer/geminiApi';
+import { getAISettings } from '../data-layer/aiSettingsStorage';
 import { getUserContext } from '../data-layer/userContextStorage';
 // import { analyzeUserInputs, getUserAnalysis } from './analysisService';
 import { addPredictedTask, getPredictedTasks, getCompletedTasks } from '../data-layer/taskStorage';
@@ -84,7 +85,10 @@ export async function predictNextTask(): Promise<string> {
 
   const prompt = PROMPTS.TEMPLATES.TASK_PREDICTION({ context: enrichedContext });
 
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   // Prefer JSON parsing per strict template; fallback to plain text parsing
   let trimmed = response

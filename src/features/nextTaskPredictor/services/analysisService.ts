@@ -1,5 +1,6 @@
 import { PROMPTS } from '../data-layer/prompts';
-import { callGeminiApi } from '../data-layer/geminiApi';
+import { callGeminiApi, callCustomAI } from '../data-layer/geminiApi';
+import { getAISettings } from '../data-layer/aiSettingsStorage';
 import { getUserInputs } from '../data-layer/userInputStorage';
 
 const ANALYSIS_KEY = 'userAnalysis';
@@ -52,7 +53,10 @@ export async function analyzeUserInputs(): Promise<UserAnalysis> {
   const inputTexts = userInputs.map((input) => `[${input.source}] ${input.text}`).join('\n');
 
   const prompt = PROMPTS.USER_INPUT_ANALYSIS.replace('{userInputs}', inputTexts);
-  const response = await callGeminiApi(prompt);
+  // Use the appropriate AI service based on user settings
+  const settings = await getAISettings();
+  const response =
+    settings.provider === 'gemini' ? await callGeminiApi(prompt) : await callCustomAI(prompt);
 
   try {
     let jsonString = response.trim();

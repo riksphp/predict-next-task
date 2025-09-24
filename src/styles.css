@@ -1,15 +1,148 @@
 @import "tailwindcss";
 @import "tailwindcss/theme" theme(reference);
 
-/* Popup default font smoothing */
+/* Modern Dark Theme Global Styles */
 @layer base {
-  :root { font-family: Rubik, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; }
-  html, body { -webkit-font-smoothing: antialiased; }
+  :root { 
+    font-family: Rubik, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    
+    /* Color Variables */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-surface: rgba(33, 38, 45, 0.8);
+    --bg-surface-hover: rgba(79, 172, 254, 0.1);
+    
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --text-tertiary: #6e7681;
+    --text-accent: #f0f6fc;
+    
+    --border-default: rgba(48, 54, 61, 0.8);
+    --border-muted: rgba(48, 54, 61, 0.5);
+    --border-accent: rgba(79, 172, 254, 0.2);
+    --border-accent-hover: rgba(79, 172, 254, 0.4);
+    
+    --accent-blue: #4facfe;
+    --accent-blue-light: #00f2fe;
+    --accent-green: #22c55e;
+    --accent-purple: #a855f7;
+    --accent-red: #ef4444;
+    --accent-orange: #fb923c;
+    
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 8px 25px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.4);
+    --shadow-accent: 0 8px 25px rgba(79, 172, 254, 0.2);
+  }
+  
+  html, body { 
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+  }
+  
   html, body, #root {
     width: 40rem;
     height: 40rem;
   }
-  body { margin: 0; }
+  
+  body { 
+    margin: 0;
+    overflow: hidden;
+  }
+  
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: rgba(48, 54, 61, 0.3);
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-accent);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-accent-hover);
+  }
+  
+  /* Selection */
+  ::selection {
+    background: rgba(79, 172, 254, 0.3);
+    color: var(--text-primary);
+  }
+  
+  /* Focus styles */
+  *:focus {
+    outline: none;
+  }
+  
+  *:focus-visible {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+  }
+}
+
+/* Animation utilities */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Utility classes */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-blue-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-surface {
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-default);
+}
+
+.button-primary {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-blue-light));
+  border: 1px solid var(--border-accent);
+  color: white;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button-primary:hover {
+  background: linear-gradient(135deg, var(--accent-blue-light), var(--accent-blue));
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-accent);
 }
 
 

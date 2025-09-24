@@ -1,4 +1,5 @@
-import { callGeminiApi } from '../data-layer/geminiApi';
+import { callGeminiApi, callCustomAI } from '../data-layer/geminiApi';
+import { getAISettings } from '../data-layer/aiSettingsStorage';
 import { addScoreEntry } from '../data-layer/scoreStorage';
 
 export interface TaskScoring {
@@ -53,7 +54,12 @@ Return ONLY valid JSON with fields:
 Be encouraging but honest. Recognize effort and provide constructive guidance.`;
 
   try {
-    const response = await callGeminiApi(scoringPrompt);
+    // Use the appropriate AI service based on user settings
+    const settings = await getAISettings();
+    const response =
+      settings.provider === 'gemini'
+        ? await callGeminiApi(scoringPrompt)
+        : await callCustomAI(scoringPrompt);
     let trimmed = response
       .trim()
       .replace(/```json|```/g, '')

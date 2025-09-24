@@ -35,6 +35,15 @@ const HomePage = () => {
         <button className={styles.primaryButton} onClick={onPredict} disabled={loading}>
           {loading ? 'Predicting...' : 'Predict Next Task'}
         </button>
+
+        <div className={styles.secondaryActions}>
+          <button className={styles.settingsButton} onClick={() => navigate('/ai-settings')}>
+            🤖 AI Settings
+          </button>
+          <button className={styles.dashboardButton} onClick={() => navigate('/dashboard')}>
+            📊 Dashboard
+          </button>
+        </div>
       </div>
 
       <div className={styles.bottom}>
