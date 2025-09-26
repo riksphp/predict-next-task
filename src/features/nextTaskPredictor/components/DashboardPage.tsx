@@ -249,6 +249,7 @@ const DashboardPage = () => {
             Welcome back, {userProfile.name || 'there'}! Here's your progress overview.
           </p>
         </div>
+        {/* header actions removed */}
       </div>
 
       <div className={styles.dashboardGrid}>
