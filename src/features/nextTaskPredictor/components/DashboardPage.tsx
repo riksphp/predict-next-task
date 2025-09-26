@@ -14,6 +14,7 @@ import { getRecentCategoriesCount } from '../data-layer/taskCategoryStorage';
 import { getGeneratedNotes, type GeneratedNote } from '../data-layer/notesStorage';
 import { generateEducationalNote } from '../services/noteGenerationService';
 import { getAISettings, type AISettings } from '../data-layer/aiSettingsStorage';
+import { getAgentTraces, clearAgentTraces } from '../data-layer/agentTraceStorage';
 import styles from './DashboardPage.module.css';
 
 const DashboardPage = () => {
@@ -31,6 +32,8 @@ const DashboardPage = () => {
   const [generatingNote, setGeneratingNote] = useState(false);
   const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [agentTraces, setAgentTraces] = useState<any[]>([]);
+  const [openTraceIndex, setOpenTraceIndex] = useState<number | null>(null);
 
   useEffect(() => {
     loadDashboardData();
@@ -50,6 +53,7 @@ const DashboardPage = () => {
         categories,
         notes,
         settings,
+        traces,
       ] = await Promise.all([
         getUserProfile(),
         getUserContext(),
@@ -61,6 +65,7 @@ const DashboardPage = () => {
         getRecentCategoriesCount(168), // Last 7 days
         getGeneratedNotes(),
         getAISettings(),
+        getAgentTraces(),
       ]);
 
       setUserProfile(profile);
@@ -78,6 +83,7 @@ const DashboardPage = () => {
       setCategoryStats(categories);
       setGeneratedNotes(notes);
       setAISettings(settings);
+      setAgentTraces(traces.slice(-10).reverse());
 
       // Debug: Log loaded data
       console.log('📊 Dashboard data loaded:', {
@@ -548,6 +554,60 @@ const DashboardPage = () => {
                 >
                   Get Started
                 </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Agent Traces (accordion) */}
+        <div className={`${styles.widget} ${styles.tracesWidget}`}>
+          <div className={styles.widgetHeader}>
+            <h3>🧭 Agent Traces</h3>
+            <div className={styles.headerActions}>
+              <span className={styles.badge}>{agentTraces.length}</span>
+              <button
+                className={styles.configureButton}
+                onClick={async () => {
+                  await clearAgentTraces();
+                  setAgentTraces([]);
+                  setOpenTraceIndex(null);
+                }}
+                title="Clear all agent traces"
+              >
+                🗑️ Clear
+              </button>
+            </div>
+          </div>
+          <div className={styles.tracesList}>
+            {agentTraces.length > 0 ? (
+              agentTraces.map((t, idx) => (
+                <div key={idx} className={styles.traceAccordionItem}>
+                  <div
+                    className={styles.traceAccordionHeader}
+                    onClick={() => setOpenTraceIndex(openTraceIndex === idx ? null : idx)}
+                  >
+                    <div className={styles.traceAccordionTitle}>
+                      <span className={styles.noteIcon}>🧩</span>
+                      <span className={styles.traceAgent}>
+                        {t.agent} → {t.output?.type}
+                      </span>
+                    </div>
+                    <div className={styles.traceMeta}>
+                      {new Date(t.startedAtMs).toLocaleTimeString()} -{' '}
+                      {new Date(t.endedAtMs).toLocaleTimeString()}
+                    </div>
+                    <div className={styles.traceToggle}>{openTraceIndex === idx ? '−' : '+'}</div>
+                  </div>
+                  {openTraceIndex === idx && (
+                    <div className={styles.traceAccordionContent}>
+                      <pre className={styles.tracePre}>{JSON.stringify(t, null, 2)}</pre>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className={styles.emptyState}>
+                <p>No agent traces yet. Run a workflow to see activity.</p>
               </div>
             )}
           </div>

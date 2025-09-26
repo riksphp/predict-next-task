@@ -9,7 +9,8 @@ export type AgentType =
   | 'LEARNING'
   | 'VALIDATION'
   | 'MONITORING'
-  | 'INTERACTION';
+  | 'INTERACTION'
+  | 'FEEDBACK';
 
 export interface AgentInput {
   userId: string;

@@ -4,7 +4,7 @@ import { usePrediction } from '../hooks/usePrediction';
 import { PROMPTS } from '../data-layer/prompts';
 import ScoreWidget from './ScoreWidget';
 import styles from './HomePage.module.css';
-import { router } from '../../../agent';
+import { router, orchestrator } from '../../../agent';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -18,6 +18,9 @@ const HomePage = () => {
     rationale: string;
   } | null>(null);
   const [routerError, setRouterError] = useState<string | null>(null);
+  const [workflowLoading, setWorkflowLoading] = useState(false);
+  const [workflowError, setWorkflowError] = useState<string | null>(null);
+  const [workflowDone, setWorkflowDone] = useState(false);
 
   async function onPredict(): Promise<void> {
     const result = await predict();
@@ -94,6 +97,36 @@ const HomePage = () => {
           >
             {routerLoading ? 'Routing…' : '🔀 Test Router'}
           </button>
+          <button
+            className={styles.settingsButton}
+            onClick={async () => {
+              setWorkflowError(null);
+              setWorkflowDone(false);
+              if (!input.trim()) {
+                setWorkflowError('Enter a goal in the input box below, then try again.');
+                return;
+              }
+              setWorkflowLoading(true);
+              try {
+                await orchestrator.execute({
+                  userId: 'default-user',
+                  sessionId: String(Date.now()),
+                  goal: input.trim(),
+                  context: {},
+                });
+                setWorkflowDone(true);
+                navigate('/dashboard');
+              } catch (e) {
+                setWorkflowError(e instanceof Error ? e.message : 'Workflow error');
+              } finally {
+                setWorkflowLoading(false);
+              }
+            }}
+            disabled={workflowLoading}
+            title="Run full agentic workflow and see traces in Dashboard"
+          >
+            {workflowLoading ? 'Running…' : '⚙️ Run Workflow'}
+          </button>
         </div>
       </div>
 
@@ -128,6 +161,14 @@ const HomePage = () => {
             <div>
               <strong>Why:</strong> {routerDecision.rationale}
             </div>
+          </div>
+        )}
+        {workflowError && (
+          <div style={{ marginTop: 8, color: '#cc0000', fontSize: 12 }}>{workflowError}</div>
+        )}
+        {workflowDone && (
+          <div style={{ marginTop: 8, color: '#0a7d00', fontSize: 12 }}>
+            Workflow complete. Open Dashboard to view agent traces.
           </div>
         )}
       </div>
