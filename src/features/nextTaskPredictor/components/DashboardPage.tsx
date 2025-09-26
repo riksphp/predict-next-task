@@ -33,7 +33,7 @@ const DashboardPage = () => {
   const [scoreHistory, setScoreHistory] = useState<ScoreEntry[]>([]);
   const [categoryStats, setCategoryStats] = useState<Record<string, number>>({});
   const [generatedNotes, setGeneratedNotes] = useState<GeneratedNote[]>([]);
-  const [expandedNotes, setExpandedNotes] = useState<Set<string>>(new Set());
+  const [, setExpandedNotes] = useState<Set<string>>(new Set());
   const [generatingNote, setGeneratingNote] = useState(false);
   const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [loading, setLoading] = useState(true);
@@ -205,18 +205,6 @@ const DashboardPage = () => {
 
     // Expose to global scope for manual testing
     (window as any).checkDataIntegrity = checkDataIntegrity;
-  }
-
-  function toggleNoteExpansion(noteId: string) {
-    setExpandedNotes((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(noteId)) {
-        newSet.delete(noteId);
-      } else {
-        newSet.add(noteId);
-      }
-      return newSet;
-    });
   }
 
   // helpers moved into widgets

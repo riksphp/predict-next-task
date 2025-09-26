@@ -60,7 +60,7 @@ export async function chatDecide(
   priorSummary?: string,
   opts?: { executedTools?: string[]; threadId?: string },
 ): Promise<
-  | { control: 'FINAL_ANSWER'; message: string }
+  | { control: 'FINAL_ANSWER'; message: string; valid?: boolean; violations?: string[] }
   | {
       control: 'TOOL_CALL';
       tool: {
@@ -68,7 +68,7 @@ export async function chatDecide(
         args: Record<string, unknown>;
       };
     }
-  | { control: 'CRITIQUE'; error: string }
+  | { control: 'CRITIQUE'; error?: string; message?: string; violations?: string[] }
 > {
   const bt = getBaseTruths();
   const truthsText = Array.isArray((bt as any)?.base_truths)
@@ -132,7 +132,20 @@ export async function chatDecide(
     };
   }
   if (json?.control === 'FINAL_ANSWER' && typeof json?.message === 'string') {
-    return { control: 'FINAL_ANSWER', message: json.message };
+    return {
+      control: 'FINAL_ANSWER',
+      message: json.message,
+      valid: typeof json.valid === 'boolean' ? Boolean(json.valid) : undefined,
+      violations: Array.isArray(json.violations) ? json.violations.map(String) : undefined,
+    };
   }
-  return { control: 'CRITIQUE', error: 'Invalid decision' };
+  if (json?.control === 'CRITIQUE') {
+    return {
+      control: 'CRITIQUE',
+      error: typeof json.error === 'string' ? json.error : undefined,
+      message: typeof json.message === 'string' ? json.message : undefined,
+      violations: Array.isArray(json.violations) ? json.violations.map(String) : undefined,
+    };
+  }
+  return { control: 'CRITIQUE', error: 'Invalid decision format' };
 }

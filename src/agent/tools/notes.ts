@@ -1,4 +1,4 @@
-import { Tool, ToolExecutionContext } from './types';
+import { Tool } from './types';
 
 type Note = { id: string; threadId: string; title: string; content: string; createdAt: number };
 const KEY = 'agentNotes';

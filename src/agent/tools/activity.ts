@@ -1,11 +1,11 @@
 import { Tool } from './types';
 
-type Task = {
-  text: string;
-  category?: string;
-  status: 'pending' | 'completed';
-  completedAt?: number;
-};
+// type Task = {
+//   text: string;
+//   category?: string;
+//   status: 'pending' | 'completed';
+//   completedAt?: number;
+// };
 const TASKS_KEY = 'predictedTasks';
 const COMPLETED_KEY = 'completedTasks';
 
@@ -26,9 +26,7 @@ async function getJson<T>(key: string, def: T): Promise<T> {
 
 export const activityByCategoryTool: Tool<{ windowHours: number }, Record<string, number>> = {
   name: 'activityByCategory.compute',
-  async execute(args): Promise<Record<string, number>> {
-    const now = Date.now();
-    const windowMs = args.windowHours * 3600_000;
+  async execute(): Promise<Record<string, number>> {
     const predicted = await getJson<string[]>(TASKS_KEY, []);
     const completed = await getJson<string[]>(COMPLETED_KEY, []);
     // naive categorization by keyword

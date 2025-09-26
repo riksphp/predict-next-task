@@ -1,6 +1,5 @@
 import { Agent, AgentInput, AgentOutput, AgentType } from '../core/types';
 import { chatDecide } from '../../features/nextTaskPredictor/services/simpleChatAssistant';
-import { toolRegistry } from '..';
 import { appendAgentTrace } from '../../features/nextTaskPredictor/data-layer/agentTraceStorage';
 
 export class SimpleChatAgent implements Agent {
@@ -47,13 +46,28 @@ export class SimpleChatAgent implements Agent {
       if (decision.control === 'FINAL_ANSWER') {
         const output: AgentOutput = {
           type: 'FINAL_ANSWER',
-          content: { message: decision.message },
+          content: {
+            message: decision.message,
+            valid: (decision as any).valid,
+            violations: (decision as any).violations,
+          },
         };
         const endedAtMs = Date.now();
         await appendAgentTrace({ agent: this.type, input, output, startedAtMs, endedAtMs });
         return output;
       }
-      const output: AgentOutput = { type: 'CRITIQUE', content: { error: decision.error } };
+      const friendly =
+        (decision as any).message ||
+        decision.error ||
+        "I cannot help with that request. It conflicts with the app's base principles.";
+      const output: AgentOutput = {
+        type: 'FINAL_ANSWER',
+        content: {
+          message: friendly,
+          violations: (decision as any).violations,
+          errorRaw: decision.error,
+        },
+      };
       const endedAtMs = Date.now();
       await appendAgentTrace({ agent: this.type, input, output, startedAtMs, endedAtMs });
       return output;
