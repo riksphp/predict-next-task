@@ -4,11 +4,20 @@ import { usePrediction } from '../hooks/usePrediction';
 import { PROMPTS } from '../data-layer/prompts';
 import ScoreWidget from './ScoreWidget';
 import styles from './HomePage.module.css';
+import { router } from '../../../agent';
 
 const HomePage = () => {
   const navigate = useNavigate();
   const { loading, predict } = usePrediction();
   const [input, setInput] = useState('');
+  const [routerLoading, setRouterLoading] = useState(false);
+  const [routerDecision, setRouterDecision] = useState<{
+    intent: string;
+    routeTo: string;
+    confidence: number;
+    rationale: string;
+  } | null>(null);
+  const [routerError, setRouterError] = useState<string | null>(null);
 
   async function onPredict(): Promise<void> {
     const result = await predict();
@@ -46,6 +55,45 @@ const HomePage = () => {
           <button className={styles.dashboardButton} onClick={() => navigate('/dashboard')}>
             📊 Dashboard
           </button>
+          <button
+            className={styles.settingsButton}
+            onClick={async () => {
+              setRouterError(null);
+              setRouterDecision(null);
+              if (!input.trim()) {
+                setRouterError('Enter a goal in the input box below, then try again.');
+                return;
+              }
+              setRouterLoading(true);
+              try {
+                const result = await router.execute({
+                  userId: 'default-user',
+                  sessionId: String(Date.now()),
+                  goal: input.trim(),
+                  context: {},
+                });
+                if (result.type === 'AGENT_CALL' && (result.content as any)) {
+                  const c = result.content as any;
+                  setRouterDecision({
+                    intent: c.intent,
+                    routeTo: (result.nextAgent as string) || c.routeTo,
+                    confidence: c.confidence,
+                    rationale: c.rationale,
+                  });
+                } else {
+                  setRouterError('Router returned a non-routing response.');
+                }
+              } catch (e) {
+                setRouterError(e instanceof Error ? e.message : 'Router error');
+              } finally {
+                setRouterLoading(false);
+              }
+            }}
+            disabled={routerLoading}
+            title="Test RouterAgent with your current goal"
+          >
+            {routerLoading ? 'Routing…' : '🔀 Test Router'}
+          </button>
         </div>
       </div>
 
@@ -64,6 +112,24 @@ const HomePage = () => {
           </button>
         </div>
         <div className={styles.inputLabel}>{PROMPTS.INPUT_LABEL}</div>
+        {routerError && (
+          <div style={{ marginTop: 8, color: '#cc0000', fontSize: 12 }}>{routerError}</div>
+        )}
+        {routerDecision && (
+          <div style={{ marginTop: 8, fontSize: 12 }}>
+            <div>
+              <strong>Intent:</strong> {routerDecision.intent}
+            </div>
+            <div>
+              <strong>Route to:</strong> {routerDecision.routeTo} (
+              {Math.round(routerDecision.confidence * 100)}
+              %)
+            </div>
+            <div>
+              <strong>Why:</strong> {routerDecision.rationale}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

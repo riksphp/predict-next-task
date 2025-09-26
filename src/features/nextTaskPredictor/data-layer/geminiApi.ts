@@ -20,7 +20,8 @@ export async function callGeminiApi(prompt: string): Promise<string> {
       throw new Error('API URL not configured. Please set up your AI settings.');
     }
 
-    const response = await fetch(`${apiUrl}?key=${apiKey}`, {
+    const url = apiUrl.includes('?') ? `${apiUrl}&key=${apiKey}` : `${apiUrl}?key=${apiKey}`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -104,7 +105,9 @@ export async function callCustomAI(prompt: string): Promise<string> {
 
     const url =
       settings.provider === 'gemini'
-        ? `${settings.apiUrl}?key=${settings.apiKey}`
+        ? settings.apiUrl.includes('?')
+          ? `${settings.apiUrl}&key=${settings.apiKey}`
+          : `${settings.apiUrl}?key=${settings.apiKey}`
         : settings.apiUrl;
 
     const response = await fetch(url, {
