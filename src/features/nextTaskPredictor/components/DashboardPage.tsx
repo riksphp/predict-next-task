@@ -14,7 +14,12 @@ import { getRecentCategoriesCount } from '../data-layer/taskCategoryStorage';
 import { getGeneratedNotes, type GeneratedNote } from '../data-layer/notesStorage';
 import { generateEducationalNote } from '../services/noteGenerationService';
 import { getAISettings, type AISettings } from '../data-layer/aiSettingsStorage';
-import { getAgentTraces, clearAgentTraces } from '../data-layer/agentTraceStorage';
+import AgentTracesWidget from '../../agentTracesWidget/components/AgentTracesWidget';
+import ScoreOverviewWidget from '../../scoreOverviewWidget/components/ScoreOverviewWidget';
+import RecentScoresWidget from '../../recentScoresWidget/components/RecentScoresWidget';
+import LearningNotesWidget from '../../learningNotesWidget/components/LearningNotesWidget';
+import CategoryChartWidget from '../../categoryChartWidget/components/CategoryChartWidget';
+import ProfileInsightsWidget from '../../profileInsightsWidget/components/ProfileInsightsWidget';
 import styles from './DashboardPage.module.css';
 
 const DashboardPage = () => {
@@ -32,8 +37,7 @@ const DashboardPage = () => {
   const [generatingNote, setGeneratingNote] = useState(false);
   const [aiSettings, setAISettings] = useState<AISettings | null>(null);
   const [loading, setLoading] = useState(true);
-  const [agentTraces, setAgentTraces] = useState<any[]>([]);
-  const [openTraceIndex, setOpenTraceIndex] = useState<number | null>(null);
+  // Traces moved to AgentTracesWidget
 
   useEffect(() => {
     loadDashboardData();
@@ -53,7 +57,6 @@ const DashboardPage = () => {
         categories,
         notes,
         settings,
-        traces,
       ] = await Promise.all([
         getUserProfile(),
         getUserContext(),
@@ -65,7 +68,6 @@ const DashboardPage = () => {
         getRecentCategoriesCount(168), // Last 7 days
         getGeneratedNotes(),
         getAISettings(),
-        getAgentTraces(),
       ]);
 
       setUserProfile(profile);
@@ -83,7 +85,6 @@ const DashboardPage = () => {
       setCategoryStats(categories);
       setGeneratedNotes(notes);
       setAISettings(settings);
-      setAgentTraces(traces.slice(-10).reverse());
 
       // Debug: Log loaded data
       console.log('📊 Dashboard data loaded:', {
@@ -218,23 +219,7 @@ const DashboardPage = () => {
     });
   }
 
-  const getScoreColor = (percentage: number) => {
-    if (percentage >= 80) return '#4CAF50';
-    if (percentage >= 60) return '#FF9800';
-    return '#f44336';
-  };
-
-  const getProgressWidth = (current: number, total: number) => {
-    if (total === 0) return 0;
-    return Math.min((current / total) * 100, 100);
-  };
-
-  const formatCategoryName = (category: string) => {
-    return category
-      .split('-')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  };
+  // helpers moved into widgets
 
   if (loading) {
     return (
@@ -249,8 +234,7 @@ const DashboardPage = () => {
 
   // Filter out any predicted tasks that are already completed (data consistency)
   const currentTodos = (predictedTasks || []).filter((task) => !completedTasks.includes(task));
-  const recentScores = scoreHistory.slice(0, 5);
-  const categoryEntries = Object.entries(categoryStats).slice(0, 6);
+  // derived lists handled within widgets
   const recentCompletedTasks = completedTasks.slice(-5).reverse(); // Last 5 completed tasks
 
   return (
@@ -268,51 +252,7 @@ const DashboardPage = () => {
       </div>
 
       <div className={styles.dashboardGrid}>
-        {/* Score Widget */}
-        <div className={`${styles.widget} ${styles.scoreWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>🏆 Your Score</h3>
-          </div>
-          {userScore ? (
-            <div className={styles.scoreContent}>
-              <div className={styles.scoreMain}>
-                <div className={styles.totalPoints}>{userScore.totalPoints}</div>
-                <div className={styles.pointsLabel}>Total Points</div>
-              </div>
-              <div className={styles.scoreStats}>
-                <div className={styles.scoreStat}>
-                  <span className={styles.statValue}>Level {userScore.level}</span>
-                  <span className={styles.statLabel}>Current Level</span>
-                </div>
-                <div className={styles.scoreStat}>
-                  <span className={styles.statValue}>{userScore.completedTasks}</span>
-                  <span className={styles.statLabel}>Tasks Done</span>
-                </div>
-                <div className={styles.scoreStat}>
-                  <span className={styles.statValue}>{userScore.averageScore}%</span>
-                  <span className={styles.statLabel}>Avg Score</span>
-                </div>
-              </div>
-              <div className={styles.levelProgress}>
-                <div className={styles.progressLabel}>Progress to Level {userScore.level + 1}</div>
-                <div className={styles.progressBar}>
-                  <div
-                    className={styles.progressFill}
-                    style={{ width: `${userScore.totalPoints % 100}%` }}
-                  ></div>
-                </div>
-                <div className={styles.progressText}>{userScore.totalPoints % 100}/100 points</div>
-                <div className={styles.levelInfo}>
-                  Level {userScore.level} • {userScore.totalPoints} total points
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <p>Start completing tasks to earn points!</p>
-            </div>
-          )}
-        </div>
+        <ScoreOverviewWidget userScore={userScore} />
 
         {/* Predicted Tasks (Todos) */}
         <div className={`${styles.widget} ${styles.todoWidget}`}>
@@ -370,140 +310,15 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        {/* Generated Learning Notes */}
-        <div className={`${styles.widget} ${styles.notesWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>📚 Learning Notes</h3>
-            <div className={styles.headerActions}>
-              <span className={styles.badge}>{generatedNotes.length}</span>
-              <button
-                className={styles.generateButton}
-                onClick={handleGenerateNote}
-                disabled={generatingNote}
-              >
-                {generatingNote ? '⏳' : '✨'} Generate Note
-              </button>
-            </div>
-          </div>
-          <div className={styles.notesList}>
-            {generatedNotes.length > 0 ? (
-              generatedNotes.slice(0, 5).map((note) => (
-                <div key={note.id} className={styles.accordionItem}>
-                  <div
-                    className={styles.accordionHeader}
-                    onClick={() => toggleNoteExpansion(note.id)}
-                  >
-                    <div className={styles.accordionTitle}>
-                      <span className={styles.noteIcon}>📖</span>
-                      <span className={styles.noteTitleText}>{note.title}</span>
-                    </div>
-                    <div className={styles.accordionMeta}>
-                      <span className={styles.noteCategory}>{note.category.replace('_', ' ')}</span>
-                      <span className={styles.accordionToggle}>
-                        {expandedNotes.has(note.id) ? '−' : '+'}
-                      </span>
-                    </div>
-                  </div>
-                  {expandedNotes.has(note.id) && (
-                    <div className={styles.accordionContent}>
-                      <p className={styles.noteContent}>{note.content}</p>
-                      <div className={styles.noteFooter}>
-                        <span className={styles.noteDate}>
-                          {new Date(note.timestamp).toLocaleDateString()}
-                        </span>
-                        {note.basedOn.predictedTasks.length > 0 && (
-                          <span className={styles.basedOn}>
-                            Based on: {note.basedOn.predictedTasks[0].substring(0, 30)}...
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className={styles.emptyState}>
-                <p>
-                  No learning notes yet. Generate personalized educational content based on your
-                  activity!
-                </p>
-                <button
-                  className={styles.emptyStateButton}
-                  onClick={handleGenerateNote}
-                  disabled={generatingNote}
-                >
-                  {generatingNote ? 'Generating...' : 'Generate First Note'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <LearningNotesWidget
+          notes={generatedNotes}
+          generating={generatingNote}
+          onGenerate={handleGenerateNote}
+        />
 
-        {/* Category Chart */}
-        <div className={`${styles.widget} ${styles.chartWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>📊 Activity by Category</h3>
-          </div>
-          <div className={styles.chartContent}>
-            {categoryEntries.length > 0 ? (
-              categoryEntries.map(([category, count]) => (
-                <div key={category} className={styles.chartItem}>
-                  <div className={styles.chartLabel}>{formatCategoryName(category)}</div>
-                  <div className={styles.chartBar}>
-                    <div
-                      className={styles.chartFill}
-                      style={{
-                        width: `${getProgressWidth(
-                          count,
-                          Math.max(...Object.values(categoryStats)),
-                        )}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className={styles.chartValue}>{count}</div>
-                </div>
-              ))
-            ) : (
-              <div className={styles.emptyState}>
-                <p>Complete some tasks to see your activity chart!</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <CategoryChartWidget data={categoryStats} />
 
-        {/* Recent Scores */}
-        <div className={`${styles.widget} ${styles.scoresWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>🎯 Recent Scores</h3>
-          </div>
-          <div className={styles.scoresList}>
-            {recentScores.length > 0 ? (
-              recentScores.map((entry) => (
-                <div key={entry.id} className={styles.scoreItem}>
-                  <div className={styles.scoreTask}>
-                    <div className={styles.taskTitle}>{entry.task.substring(0, 40)}...</div>
-                    <div className={styles.taskDate}>
-                      {new Date(entry.timestamp).toLocaleDateString()}
-                    </div>
-                  </div>
-                  <div className={styles.scoreValue}>
-                    <span
-                      className={styles.scorePoints}
-                      style={{ color: getScoreColor((entry.score / entry.maxScore) * 100) }}
-                    >
-                      {entry.score}/{entry.maxScore}
-                    </span>
-                    <span className={styles.scoreCategory}>{entry.category}</span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className={styles.emptyState}>
-                <p>Complete interactive tasks to see your scores!</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <RecentScoresWidget entries={scoreHistory} />
 
         {/* AI Configuration Status */}
         <div className={`${styles.widget} ${styles.aiConfigWidget}`}>
@@ -560,102 +375,13 @@ const DashboardPage = () => {
         </div>
 
         {/* Agent Traces (accordion) */}
-        <div className={`${styles.widget} ${styles.tracesWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>🧭 Agent Traces</h3>
-            <div className={styles.headerActions}>
-              <span className={styles.badge}>{agentTraces.length}</span>
-              <button
-                className={styles.configureButton}
-                onClick={async () => {
-                  await clearAgentTraces();
-                  setAgentTraces([]);
-                  setOpenTraceIndex(null);
-                }}
-                title="Clear all agent traces"
-              >
-                🗑️ Clear
-              </button>
-            </div>
-          </div>
-          <div className={styles.tracesList}>
-            {agentTraces.length > 0 ? (
-              agentTraces.map((t, idx) => (
-                <div key={idx} className={styles.traceAccordionItem}>
-                  <div
-                    className={styles.traceAccordionHeader}
-                    onClick={() => setOpenTraceIndex(openTraceIndex === idx ? null : idx)}
-                  >
-                    <div className={styles.traceAccordionTitle}>
-                      <span className={styles.noteIcon}>🧩</span>
-                      <span className={styles.traceAgent}>
-                        {t.agent} → {t.output?.type}
-                      </span>
-                    </div>
-                    <div className={styles.traceMeta}>
-                      {new Date(t.startedAtMs).toLocaleTimeString()} -{' '}
-                      {new Date(t.endedAtMs).toLocaleTimeString()}
-                    </div>
-                    <div className={styles.traceToggle}>{openTraceIndex === idx ? '−' : '+'}</div>
-                  </div>
-                  {openTraceIndex === idx && (
-                    <div className={styles.traceAccordionContent}>
-                      <pre className={styles.tracePre}>{JSON.stringify(t, null, 2)}</pre>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              <div className={styles.emptyState}>
-                <p>No agent traces yet. Run a workflow to see activity.</p>
-              </div>
-            )}
-          </div>
-        </div>
+        <AgentTracesWidget />
 
-        {/* Profile & Analysis */}
-        <div className={`${styles.widget} ${styles.profileWidget}`}>
-          <div className={styles.widgetHeader}>
-            <h3>👤 Profile & Insights</h3>
-          </div>
-          <div className={styles.profileContent}>
-            <div className={styles.profileInfo}>
-              <div className={styles.profileField}>
-                <span className={styles.fieldLabel}>Name:</span>
-                <span className={styles.fieldValue}>{userProfile.name || 'Not set'}</span>
-              </div>
-              <div className={styles.profileField}>
-                <span className={styles.fieldLabel}>Profession:</span>
-                <span className={styles.fieldValue}>{userProfile.profession || 'Not set'}</span>
-              </div>
-              <div className={styles.profileField}>
-                <span className={styles.fieldLabel}>Current Mood:</span>
-                <span className={styles.fieldValue}>
-                  {userProfile.mood || latestContext.mood || 'Not specified'}
-                </span>
-              </div>
-              <div className={styles.profileField}>
-                <span className={styles.fieldLabel}>Work Style:</span>
-                <span className={styles.fieldValue}>
-                  {userProfile.workStyle || userAnalysis?.workStyle || 'Not analyzed'}
-                </span>
-              </div>
-            </div>
-
-            {userAnalysis && (
-              <div className={styles.insights}>
-                <h4>🧠 AI Insights</h4>
-                <div className={styles.insightTags}>
-                  {userAnalysis.patterns.slice(0, 3).map((pattern, index) => (
-                    <span key={index} className={styles.insightTag}>
-                      {pattern}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <ProfileInsightsWidget
+          profile={userProfile}
+          latestMood={latestContext.mood}
+          insights={userAnalysis?.patterns}
+        />
       </div>
 
       <div className={styles.footer}>
