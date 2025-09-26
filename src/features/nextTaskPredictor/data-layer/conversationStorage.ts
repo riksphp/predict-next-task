@@ -1,6 +1,7 @@
 const THREADS_KEY = 'conversationThreads';
 const MESSAGES_KEY = 'conversationMessages';
 const CURRENT_THREAD_ID_KEY = 'currentThreadId';
+const THREAD_SUMMARY_KEY_PREFIX = 'conversationSummary:';
 
 export type ConversationRole = 'user' | 'assistant' | 'system';
 
@@ -17,6 +18,43 @@ export interface ConversationMessage {
   role: ConversationRole;
   text: string;
   timestamp: string;
+}
+
+export async function clearThreadMessages(threadId: string): Promise<void> {
+  const all = await getAllMessages();
+  const remaining = all.filter((m) => m.threadId !== threadId);
+  await saveAllMessages(remaining);
+}
+
+export async function getThreadSummary(threadId: string): Promise<string | null> {
+  try {
+    if (hasChromeStorage()) {
+      return new Promise((resolve) => {
+        const key = THREAD_SUMMARY_KEY_PREFIX + threadId;
+        window.chrome!.storage!.local.get([key], (items: Record<string, unknown>) => {
+          resolve((items?.[key] as string) || null);
+        });
+      });
+    }
+    return localStorage.getItem(THREAD_SUMMARY_KEY_PREFIX + threadId);
+  } catch {
+    return null;
+  }
+}
+
+export async function setThreadSummary(threadId: string, summary: string): Promise<void> {
+  try {
+    if (hasChromeStorage()) {
+      const key = THREAD_SUMMARY_KEY_PREFIX + threadId;
+      await new Promise<void>((resolve) => {
+        window.chrome!.storage!.local.set({ [key]: summary }, () => resolve());
+      });
+      return;
+    }
+    localStorage.setItem(THREAD_SUMMARY_KEY_PREFIX + threadId, summary);
+  } catch {
+    // ignore
+  }
 }
 
 function hasChromeStorage(): boolean {

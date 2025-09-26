@@ -12,8 +12,8 @@ export const DEFAULT_AI_SETTINGS: AISettings = {
   provider: 'gemini',
   apiKey: '',
   apiUrl:
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent',
-  modelName: 'gemini-1.5-flash-latest',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+  modelName: 'gemini-2.0-flash',
 };
 
 function hasChromeStorage(): boolean {
@@ -75,8 +75,8 @@ export function getProviderDefaults(provider: string): Partial<AISettings> {
     case 'gemini':
       return {
         apiUrl:
-          'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent',
-        modelName: 'gemini-1.5-flash-latest',
+          'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
+        modelName: 'gemini-2.0-flash',
       };
     default:
       return {};

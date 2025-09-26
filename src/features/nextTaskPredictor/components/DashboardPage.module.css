@@ -97,7 +97,7 @@
 /* Dashboard Grid */
 .dashboardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   margin-bottom: 32px;
 }
@@ -691,6 +691,91 @@
   border-radius: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Traces Widget (accordion like notes) */
+.tracesWidget {
+  background: linear-gradient(145deg, #20252d 0%, #2a313a 100%);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.tracesWidget::before {
+  background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.4), transparent);
+}
+
+.tracesList {
+  max-height: 320px;
+  overflow-y: auto;
+  margin: -8px -4px;
+  padding: 8px 4px;
+}
+
+.traceAccordionItem {
+  margin-bottom: 12px;
+  background: rgba(148, 163, 184, 0.06);
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.traceAccordionItem:hover {
+  border-color: rgba(148, 163, 184, 0.24);
+}
+
+.traceAccordionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.traceAccordionHeader:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.traceAccordionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.traceAgent {
+  font-size: 12px;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.traceMeta {
+  font-size: 11px;
+  color: #8b949e;
+}
+
+.traceToggle {
+  font-size: 18px;
+  color: #8b949e;
+  font-weight: bold;
+}
+
+.traceAccordionContent {
+  padding: 0 16px 12px 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(148, 163, 184, 0.04);
+}
+
+.tracePre {
+  max-height: 180px;
+  overflow: auto;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #e6edf3;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
 }
 
 /* Profile Widget */
